@@ -4,8 +4,6 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chat_models import AzureChatOpenAI
 from langchain.chains import RetrievalQA
 import os
-from dotenv import load_dotenv
-load_dotenv(override=True)
 
 
 llm = AzureChatOpenAI(
