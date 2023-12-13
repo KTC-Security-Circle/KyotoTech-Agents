@@ -6,10 +6,11 @@ from langchain.chains import RetrievalQA
 import os
 
 
+
 llm = AzureChatOpenAI(
     openai_api_base=os.environ["OPENAI_API_BASE"],
     openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["DEPLOYMENT_NAME"],
+    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
     openai_api_key=os.environ["OPENAI_API_KEY"],
     openai_api_type="azure",
 )
