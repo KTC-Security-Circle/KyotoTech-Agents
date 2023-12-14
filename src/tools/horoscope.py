@@ -13,7 +13,6 @@ import datetime
 from langchain.tools import tool
 from pydantic import BaseModel, Field
 
-
 # モデルの初期化
 llm = AzureChatOpenAI( # Azure OpenAIのAPIを読み込み。
     openai_api_base=os.environ["OPENAI_API_BASE"],
@@ -36,12 +35,10 @@ HOROSCOPE_SYSTEM_PROMPT = '''あなたは星占いの専門家です。
 
 
 
-
 # エージェントの初期化
-class HoroscopeInput(BaseModel): # 誕生日を入力するためのモデルを作成。
+class HoroscopeInput(BaseModel) : # 誕生日を入力するためのモデルを作成。
     birthday: str = Field(
         description="'mm/dd'形式の誕生日です。例: 3月7日生まれの場合は '03/07' です。")
-
 
 @tool("horoscope", return_direct=True, args_schema=HoroscopeInput) # Agentsツールを作成。
 def horoscope(input_data: HoroscopeInput): # 誕生日を入力すると、星占いをしてくれる関数を作成。
