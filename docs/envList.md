@@ -1,9 +1,9 @@
-# environment variable List
+# 環境変数のリストと説明
 
 **Note** : このファイルは、環境変数のリストです。
 - **環境変数の名前** : 環境変数の説明文
 
-## 1. **OPENAI_API** の環境変数
+## 1. OPENAI_API の環境変数
 - **OPENAI_API_BASE** : Azure OpenAI APIのベースURL
 
 - **OpenAI API Key** : Azure OpenAI APIのキー
@@ -17,7 +17,7 @@
 - **DEPLOYMENT_EMBEDDINGS_NAME** : Azure OpenAI APIのEmbeddings Modelのデプロイメント名
 
 
-## 2. **AZURE_COGNITIVE_SEARCH** の環境変数
+## 2. AZURE_COGNITIVE_SEARCH の環境変数
 - **AZURE_SEARCH_ENDPOINT** : Azure Searchのエンドポイント
 
 - **AZURE_SEARCH_KEY** : Azure Searchのキー
