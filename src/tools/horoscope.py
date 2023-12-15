@@ -99,4 +99,10 @@ horoscope_agent = initialize_agent(
 
 
 # horoscope_agent.run("私の今日の運勢を教えて。")
-horoscope_agent.run("私の誕生日は3月3日です。")
+# horoscope_agent.run("私の誕生日は3月3日です。")
+while True:
+    message = input(">> ")
+    if message == "exit":
+        break
+    horoscope_agent.run(message)
+
