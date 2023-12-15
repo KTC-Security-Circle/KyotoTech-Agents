@@ -81,7 +81,7 @@ class PartsOrderInput(BaseModel):
         description="部品注文の対象となる商品の箱や説明書に記載されている6桁の数字の文字列です。")
     part_no_and_quantities: list[dict[str, str]] = Field(description=(
         '注文する部品とその個数の表現する dict の list です。\n'
-        'dict は key "part_no"の value が部品名称の文字列、key "quantity"の value が個数を意味する整数です。\n'
+        'dict は key "part_no" の value が部品名称の文字列、key "quantity" の value が個数を意味する整数です。\n'
         '例: 部品"J-26"を2個と部品"デカールC"を1枚注文する場合は、\n'
         '\n'
         '[{"part_no": "J-26", "quantity": 2}, {"part_no": "デカールC", "quantity": 1}]\n'
@@ -118,34 +118,48 @@ def parts_order(
     if canceled:
         return "わかりました。また部品の注文が必要になったらご相談ください。"
 
-    def check_params(name, kana, post_code, address, tel, email, product_name,
-                     product_no, part_no_and_quantities):
-
+    def check_params(name, kana, post_code, address, tel, email, product_name, product_no, part_no_and_quantities):
         for arg in [name, kana, post_code, address, tel, email, product_name, product_no]:
             if arg is None or arg == "***" or arg == "":
                 return False
         if not part_no_and_quantities:
             return False
 
+        # for p_and_q in part_no_and_quantities:
+        #     part_no = p_and_q.get('part_no', '***')
+        #     quantity = p_and_q.get('quantity', '***')
+        #     if 'part_no' not in p_and_q or 'quantity' not in p_and_q:
+        #         return False
+        #     if part_no == '***' or quantity == '***':
+        #         return False
         for p_and_q in part_no_and_quantities:
-            part_no = p_and_q.get('part_no', '***')
-            quantity = p_and_q.get('quantity', '***')
-            if part_no == '***':
+            if "part_no" not in p_and_q or "quantity" not in p_and_q:
                 return False
-            if quantity == '***':
+            if p_and_q["part_no"] == "***" or p_and_q["quantity"] == "***":
                 return False
         return True
 
-    has_required = check_params(name, kana, post_code, address, tel, email, product_name,
-                                product_no, part_no_and_quantities)
+    has_required = check_params(name, kana, post_code, address, tel, email, product_name, product_no, part_no_and_quantities)
 
+    # if part_no_and_quantities:
+    #     part_no_and_quantities = "\n    ".join(
+    #         [f"{row.get('part_no','***')} x {row.get('quantity','***')}"
+    #          for row in part_no_and_quantities]
+    #     )
+    # else:
+    #     part_no_and_quantities = "***"
     if part_no_and_quantities:
-        part_no_and_quantities = "\n    ".join(
-            [f"{row.get('part_no','***')} x {row.get('quantity','***')}"
-             for row in part_no_and_quantities]
-        )
+        parts_list = []
+        for row in part_no_and_quantities:
+            part_no = row.get('part_no', '***')
+            quantity = row.get('quantity', '***')
+            if part_no != '***' and quantity != '***':
+                parts_list.append(f"{part_no} x {quantity}")
+            else:
+                parts_list.append("***")
+        part_no_and_quantities = "\n    ".join(parts_list)
     else:
-        part_no_and_quantities = "    ***"
+        part_no_and_quantities = "***"
 
     # 注文情報のテンプレート
     order_template = (
