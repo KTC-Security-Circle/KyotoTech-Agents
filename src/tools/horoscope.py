@@ -11,7 +11,7 @@ import json
 import requests
 import datetime
 from langchain.tools import tool
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 
 # モデルの初期化
 llm = AzureChatOpenAI( # Azure OpenAIのAPIを読み込み。
@@ -86,7 +86,7 @@ chat_history = MessagesPlaceholder(variable_name='chat_history')
 horoscope_tools = [horoscope]
 
 agent_kwargs = {
-    "system_message": SystemMessagePromptTemplate.from_template(content=HOROSCOPE_SYSTEM_PROMPT),
+    "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
     "extra_prompt_messages": [chat_history]
 }
 horoscope_agent = initialize_agent(
