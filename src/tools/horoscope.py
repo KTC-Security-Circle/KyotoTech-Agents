@@ -41,9 +41,8 @@ class HoroscopeInput(BaseModel) : # 誕生日を入力するためのモデル�
         description="'mm/dd'形式の誕生日です。例: 3月7日生まれの場合は '03/07' です。")
 
 @tool("horoscope", return_direct=True, args_schema=HoroscopeInput) # Agentsツールを作成。
-def horoscope(input_data: HoroscopeInput): # 誕生日を入力すると、星占いをしてくれる関数を作成。
+def horoscope(birthday: str): # 誕生日を入力すると、星占いをしてくれる関数を作成。
     """星占いで今日の運勢を占います。"""
-    birthday = input_data.birthday
     birthday = "02/28" if birthday == "02/29" else birthday
     yday = datetime.datetime.strptime(birthday, '%m/%d').timetuple().tm_yday
     sign_table = {
@@ -99,4 +98,5 @@ horoscope_agent = initialize_agent(
 )
 
 
-horoscope_agent.run("私の今日の運勢を教えて。")
+# horoscope_agent.run("私の今日の運勢を教えて。")
+horoscope_agent.run("私の誕生日は3月3日です。")
