@@ -1,5 +1,4 @@
 import os
-import typing
 
 from langchain.memory import ConversationBufferMemory
 from langchain.chat_models import AzureChatOpenAI
@@ -105,4 +104,3 @@ while True:
     if message == "exit":
         break
     horoscope_agent.run(message)
-
