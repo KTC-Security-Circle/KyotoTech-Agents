@@ -22,6 +22,7 @@ class grobal_value:
         model_kwargs={"top_p": 0.1}
     )
 
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    memory = ConversationBufferMemory(
+        memory_key="chat_history", return_messages=True)
     readonly_memory = ReadOnlySharedMemory(memory=memory)
     chat_history = MessagesPlaceholder(variable_name='chat_history')

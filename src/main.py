@@ -202,15 +202,16 @@ while True:
         input_message = input(">> ")
         if input_message == "Y" or input_message == "y" or input_message == "yes" or input_message == "Yes":
             try:
+                buffer = g.memory.load_memory_variables({})
                 with open("chat_history.txt", mode="w") as f:
-                    f.write(str(g.readonly_memory))
+                    f.write(f'{buffer["chat_history"]}')
                     print("会話履歴を保存しました。")
             except Exception as e:
-                print("err : " + e)
+                print("err : " + str(e))
         print("終了します。")
         break
     try:
         ai_response = agent.run(message)
         print("AI : " + ai_response)
     except Exception as e:
-        print("err : " + e)
+        print("err : " + str(e))
