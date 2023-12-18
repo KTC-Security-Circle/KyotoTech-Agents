@@ -1,25 +1,14 @@
 import os
 
-from langchain.memory import ConversationBufferMemory
-from langchain.chat_models import AzureChatOpenAI
 from langchain.agents import AgentType, initialize_agent, tool
-import langchain
-
-from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate
+from langchain.prompts.chat import SystemMessagePromptTemplate
 import json
 import requests
 import datetime
 from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-# モデルの初期化
-llm = AzureChatOpenAI( # Azure OpenAIのAPIを読み込み。
-    openai_api_base=os.environ["OPENAI_API_BASE"],
-    openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-    openai_api_key=os.environ["OPENAI_API_KEY"],
-    openai_api_type="azure",
-)
+from tools.grobal import grobal_value as g
 
 
 # システムプロンプトの設定
@@ -71,36 +60,26 @@ def horoscope(birthday: str): # 誕生日を入力すると、星占いをして
 
 
 
-
-
-
-verbose = True
-langchain.debug = verbose
-
-memory = ConversationBufferMemory(
-    memory_key="chat_history", return_messages=True)
-chat_history = MessagesPlaceholder(variable_name='chat_history')
-
 horoscope_tools = [horoscope]
 
 agent_kwargs = {
     "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
-    "extra_prompt_messages": [chat_history]
+    "extra_prompt_messages": [g.chat_history]
 }
 horoscope_agent = initialize_agent(
     horoscope_tools,
-    llm,
+    g.llm,
     agent=AgentType.OPENAI_FUNCTIONS,
-    verbose=verbose,
+    verbose=g.verbose,
     agent_kwargs=agent_kwargs,
-    memory=memory
+    memory=g.readonly_memory
 )
 
-
+# debag
 # horoscope_agent.run("私の今日の運勢を教えて。")
 # horoscope_agent.run("私の誕生日は3月3日です。")
-while True:
-    message = input(">> ")
-    if message == "exit":
-        break
-    horoscope_agent.run(message)
+# while True:
+#     message = input(">> ")
+#     if message == "exit":
+#         break
+#     horoscope_agent.run(message)
