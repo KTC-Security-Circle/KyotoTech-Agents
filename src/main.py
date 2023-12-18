@@ -13,7 +13,7 @@ from langchain.schema import (
 from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
 from pydantic.v1 import Extra, BaseModel, Field
-from typing import Any, List, Tuple, Set
+from typing import Any, List, Tuple, Set, Union
 
 from tools.grobal import grobal_value as g
 
