@@ -75,6 +75,13 @@ horoscope_agent = initialize_agent(
     memory=g.readonly_memory
 )
 
+def run(input):
+    try:
+        response = horoscope_agent.run(input)
+    except Exception as e:
+        response = e
+    return response
+
 # debag
 # horoscope_agent.run("私の今日の運勢を教えて。")
 # horoscope_agent.run("私の誕生日は3月3日です。")

@@ -6,7 +6,7 @@ from langchain.prompts.chat import SystemMessagePromptTemplate
 from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-from grobal import grobal_value as g
+from tools.grobal import grobal_value as g
 
 
 # システムプロンプトの設定
@@ -64,7 +64,7 @@ agent_kwargs = {
     "system_message": SystemMessagePromptTemplate.from_template(template=SEARCHDB_SYSTEM_PROMPT),
     "extra_prompt_messages": [g.chat_history]
 }
-search_agent = initialize_agent(
+search_database_agent = initialize_agent(
     search_tools,
     g.llm,
     agent=AgentType.OPENAI_FUNCTIONS,
@@ -72,6 +72,14 @@ search_agent = initialize_agent(
     agent_kwargs=agent_kwargs,
     memory=g.readonly_memory
 )
+
+
+def run(input):
+    try:
+        response = search_database_agent.run(input)
+    except Exception as e:
+        response = e
+    return response
 
 #debag
 # while True:

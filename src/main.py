@@ -16,6 +16,10 @@ from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 
 from tools.grobal import grobal_value as g
+from tools.default import run as default_chain
+from tools.searchDB import run as search_database_agent
+from tools.horoscope import run as horoscope_agent
+# from tools.reservation import run as parts_order_agent
 
 
 ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
@@ -86,11 +90,13 @@ class DispatcherAgent(BaseSingleActionAgent):
             [f"{tool.name}: {tool.description}" for tool in self.tools])
         router_template = ROUTER_TEMPLATE.format(destinations=destinations)
         router_prompt_template = ChatPromptTemplate.from_messages([
-            SystemMessagePromptTemplate.from_template(template=router_template),
+            SystemMessagePromptTemplate.from_template(
+                template=router_template),
             MessagesPlaceholder(variable_name='chat_history'),
             HumanMessagePromptTemplate(prompt=PromptTemplate(
                 input_variables=['input'], template='{input}')),
-            SystemMessagePromptTemplate.from_template(template=ROUTER_PROMPT_SUFFIX)
+            SystemMessagePromptTemplate.from_template(
+                template=ROUTER_PROMPT_SUFFIX)
         ])
         self.router_chain = LLMChain(
             llm=self.chat_model,
@@ -130,3 +136,71 @@ class DispatcherAgent(BaseSingleActionAgent):
             destination = "DEFAULT"
 
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
+
+
+
+class HoroscopeAgentInput(BaseModel):
+    user_utterance: str = Field(description="星占いの専門家に伝達するユーザーの直近の発話内容です。")
+
+# class PartsOrderAgentInput(BaseModel):
+#     user_utterance: str = Field(
+#         description="プラモデルの部品の個別注文の担当者に伝達するユーザーの直近の発話内容です。")
+
+class SearchDBAgentInput(BaseModel):
+    user_utterance: str = Field(
+        description="学校データベース検索を担当する担当者に伝達するユーザーの直近の発話内容です。")
+
+class DefaultAgentInput(BaseModel):
+    user_utterance: str = Field(
+        description="一般的な内容を担当する担当者に伝達するユーザーの直近の発話内容です。")
+
+
+
+tools = [
+    Tool.from_function(
+        func=horoscope_agent,
+        name="horoscope_agent",
+        description="星占いの担当者です。星占いに関係する会話の対応はこの担当者に任せるべきです。",
+        args_schema=HoroscopeAgentInput,
+        return_direct=True
+    ),
+    # Tool.from_function(
+    #     func=parts_order_agent,
+    #     name="parts_order_agent",
+    #     description="プラモデルの部品の個別注文の担当者です。プラモデルの部品注文やキャンセルに関係する会話の対応はこの担当者に任せるべきです。",
+    #     args_schema=PartsOrderAgentInput,
+    #     return_direct=True
+    # ),
+    Tool.from_function(
+        func=search_database_agent,
+        name="search_database_agent",
+        description="学校データベース検索の担当者です。学校データベースの検索や学校情報に関係する会話の対応はこの担当者に任せるべきです。",
+        args_schema=SearchDBAgentInput,
+        return_direct=True
+    ),
+    Tool.from_function(
+        func=default_chain,
+        name="DEFAULT",
+        description="一般的な会話の担当者です。一般的で特定の専門家に任せるべきでない会話の対応はこの担当者に任せるべきです。",
+        args_schema=DefaultAgentInput,
+        return_direct=True
+    ),
+]
+
+dispatcher_agent = DispatcherAgent(
+    chat_model=g.llm, readonly_memory=g.readonly_memory, tools=tools, verbose=g.verbose)
+
+agent = AgentExecutor.from_agent_and_tools(
+    agent=dispatcher_agent, tools=tools, memory=g.memory, verbose=g.verbose
+)
+
+
+while True:
+    message = input(">> ")
+    if message == "exit" or message == "終了":
+        break
+    try:
+        ai_response = agent.run(message)
+        print("AI : " + ai_response)
+    except Exception as e:
+        print("err : " + e)
