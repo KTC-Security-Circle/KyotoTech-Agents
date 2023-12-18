@@ -198,6 +198,11 @@ agent = AgentExecutor.from_agent_and_tools(
 while True:
     message = input(">> ")
     if message == "exit" or message == "終了":
+        print("終了します。")
+        with open("chat_history1.txt", mode="w") as f:
+            f.write(str(g.chat_history))
+        with open("chat_history2.txt", mode="w") as f:
+            f.write(str(g.readonly_memory))
         break
     try:
         ai_response = agent.run(message)
