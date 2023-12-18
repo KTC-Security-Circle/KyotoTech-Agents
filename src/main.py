@@ -16,10 +16,15 @@ from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 
 from tools.grobal import grobal_value as g
-from tools.default import run as default_chain
-from tools.searchDB import run as search_database_agent
-from tools.horoscope import run as horoscope_agent
+# from tools.default import run as default_chain
+# from tools.searchDB import run as search_database_agent
+# from tools.horoscope import run as horoscope_agent
 # from tools.reservation import run as parts_order_agent
+from tools import (
+    horoscope,
+    searchDB,
+    default
+)
 
 
 ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
@@ -158,8 +163,8 @@ class DefaultAgentInput(BaseModel):
 
 tools = [
     Tool.from_function(
-        func=horoscope_agent,
-        name="horoscope_agent",
+        func=horoscope.run,
+        name="horoscope",
         description="星占いの担当者です。星占いに関係する会話の対応はこの担当者に任せるべきです。",
         args_schema=HoroscopeAgentInput,
         return_direct=True
@@ -172,14 +177,14 @@ tools = [
     #     return_direct=True
     # ),
     Tool.from_function(
-        func=search_database_agent,
-        name="search_database_agent",
+        func=searchDB.run,
+        name="searchDB",
         description="学校データベース検索の担当者です。学校データベースの検索や学校情報に関係する会話の対応はこの担当者に任せるべきです。",
         args_schema=SearchDBAgentInput,
         return_direct=True
     ),
     Tool.from_function(
-        func=default_chain,
+        func=default.run,
         name="DEFAULT",
         description="一般的な会話の担当者です。一般的で特定の専門家に任せるべきでない会話の対応はこの担当者に任せるべきです。",
         args_schema=DefaultAgentInput,
@@ -195,23 +200,9 @@ agent = AgentExecutor.from_agent_and_tools(
 )
 
 
-while True:
-    message = input(">> ")
-    if message == "exit" or message == "終了":
-        print("会話履歴を保存しますか。（Y/n）")
-        input_message = input(">> ")
-        if input_message == "Y" or input_message == "y" or input_message == "yes" or input_message == "Yes":
-            try:
-                buffer = g.memory.load_memory_variables({})
-                with open("chat_history.txt", mode="w") as f:
-                    f.write(f'{buffer["chat_history"]}')
-                    print("会話履歴を保存しました。")
-            except Exception as e:
-                print("err : " + str(e))
-        print("終了します。")
-        break
+def run(input):
     try:
-        ai_response = agent.run(message)
-        print("AI : " + ai_response)
+        response = agent.run(input)
     except Exception as e:
-        print("err : " + str(e))
+        response = e
+    return response

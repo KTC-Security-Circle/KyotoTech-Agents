@@ -6,8 +6,6 @@ from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 
 # グローバル変数の定義
-
-
 class grobal_value:
     verbose = True
     langchain.debug = verbose
