@@ -1,3 +1,5 @@
+from openai import InvalidRequestError
+
 from tools.grobal import grobal_value as g
 import main
 
@@ -20,6 +22,11 @@ while True:
         break
     try:
         ai_response = main.run(message)
-        print("AI : " + ai_response)
+        print(f'"AI : " + {ai_response}')
+    except InvalidRequestError as error:
+        message = error.response.json()["error"]["message"]
+        print("Hit error: ", message)
+        break
     except Exception as e:
         print("err : " + str(e))
+        break
