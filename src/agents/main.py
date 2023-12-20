@@ -15,8 +15,8 @@ from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTempl
 from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 
-from tools.grobal import grobal_value as g
-from tools import (
+from .tools.grobal import grobal_value as g
+from .tools import (
     horoscope,
     searchDB,
     default

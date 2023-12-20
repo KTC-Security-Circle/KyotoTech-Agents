@@ -4,7 +4,7 @@ from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 
-from tools.grobal import grobal_value as g
+from .grobal import grobal_value as g
 
 DEFAULT_SYSTEM_PROMPT = '''あなたはAIのアシスタントです。
 ユーザーの質問に答えたり、議論したり、日常会話を楽しんだりします。

@@ -1,7 +1,7 @@
 from openai import InvalidRequestError
 
-from tools.grobal import grobal_value as g
-import main
+from agents.tools.grobal import grobal_value as g
+import agents.main as main
 
 
 while True:

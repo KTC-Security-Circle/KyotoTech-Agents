@@ -6,7 +6,7 @@ from langchain.prompts.chat import SystemMessagePromptTemplate
 from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-from tools.grobal import grobal_value as g
+from .grobal import grobal_value as g
 
 
 # システムプロンプトの設定
