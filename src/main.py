@@ -16,10 +16,6 @@ from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 
 from tools.grobal import grobal_value as g
-# from tools.default import run as default_chain
-# from tools.searchDB import run as search_database_agent
-# from tools.horoscope import run as horoscope_agent
-# from tools.reservation import run as parts_order_agent
 from tools import (
     horoscope,
     searchDB,
