@@ -1,16 +1,14 @@
 import os
-from typing import Union
-
 from langchain.memory import ConversationBufferMemory
 from langchain.chat_models import AzureChatOpenAI
 from langchain.agents import AgentType, initialize_agent, tool
 import langchain
-
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate
+from langchain.tools import tool
 import json
 import requests
 import datetime
-from langchain.tools import tool
+from typing import Union
 from pydantic.v1 import BaseModel, Field
 
 verbose = True

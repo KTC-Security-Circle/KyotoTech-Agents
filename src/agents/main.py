@@ -196,9 +196,11 @@ agent = AgentExecutor.from_agent_and_tools(
 )
 
 
+
 def run(input):
     try:
-        response = agent.run(input)
+        output = agent.run(input)
+        return output
     except Exception as e:
-        response = e
-    return response
+        err_msg = f"エラーが発生しました。時間をおいて再度お試しください。"
+        return err_msg

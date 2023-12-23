@@ -16,10 +16,15 @@ SEARCHDB_SYSTEM_PROMPT = '''あなたはデータベース検索AIです。
 あなたの取るべき行動
 --------------------
 ユーザーから与えられたプロンプトから検索ワードを抽出し、 search_word という変数に格納してください。
-検索結果は serach_result という変数に格納されています。
-search_result に検索結果が格納されている場合は、検索結果を元に回答を作成し、ユーザーに返答してください。
+検索結果を元に回答を作成し、ユーザーに返答してください。
 最終回答は150字以下に要約して回答してください。
 もし検索ワードに対する検索結果が不適当であれば、答えを作ろうとせず "わかりません。" と回答し、ユーザーに対して検索ワードを変更するように促してください。
+--------------------
+
+例
+--------------------
+例えば、ユーザーから "京都テックについて教えて" というプロンプトを受け取った場合、 searach_word に "京都テック" を格納します。
+その後、"京都テック" という検索ワードを元に検索を行い、検索結果を元に回答を作成し、ユーザーに返答します。
 --------------------
 
 '''
@@ -34,9 +39,6 @@ def search(
     search_word: str,
 ):
     """検索ワードから、検索結果を返答します。"""
-    search_word = search_word
-    serach_result = None
-    
     def search_database(search_word):
         retriever = AzureCognitiveSearchRetriever(
             service_name=os.environ["AZURE_COGNITIVE_SEARCH_SERVICE_NAME"],
@@ -50,7 +52,7 @@ def search(
         search_result = []
         for doc in res:
             if hasattr(doc, 'page_content'):
-                search_result.append(f'検索結果{i}は以下の通りです。\n{doc.page_content}')
+                search_result.append(f'・検索結果{i}は以下の通りです。\n{doc.page_content}\n\n')
                 i += 1
         return search_result
 
@@ -75,11 +77,7 @@ search_database_agent = initialize_agent(
 
 
 def run(input):
-    try:
-        response = search_database_agent.run(input)
-    except Exception as e:
-        response = e
-    return response
+    return search_database_agent.run(input)
 
 #debag
 # while True:

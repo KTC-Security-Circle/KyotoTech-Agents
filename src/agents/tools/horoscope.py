@@ -76,11 +76,7 @@ horoscope_agent = initialize_agent(
 )
 
 def run(input):
-    try:
-        response = horoscope_agent.run(input)
-    except Exception as e:
-        response = e
-    return response
+    return horoscope_agent.run(input)
 
 # debag
 # horoscope_agent.run("私の今日の運勢を教えて。")
