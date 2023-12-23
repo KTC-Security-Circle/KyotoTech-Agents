@@ -23,29 +23,42 @@ from .tools import (
 )
 
 
-ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
-以下の選択候補からその説明を参考にしてユーザーの対応を任せるのに最も適した候補を選び、その名前を回答することです。
-あなたが直接ユーザーへ回答してはいけません。あなたは対応を任せる候補を選ぶだけです。
+# ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
+# 以下の選択候補からその説明を参考にしてユーザーの対応を任せるのに最も適した候補を選び、その名前を回答することです。
+# あなたが直接ユーザーへ回答してはいけません。あなたは対応を任せる候補を選ぶだけです。
 
-<< 選択候補 >>
-名前: 説明
+# << 選択候補 >>
+# 名前: 説明
+# {destinations}
+
+# << 出力形式の指定 >>
+# 選択した候補の名前のみを出力して下さい。
+# 注意事項: 出力するのは必ず選択候補として示された候補の名前の一つでなければなりません。
+# ただし全ての選択候補が不適切であると判断した場合には "DEFAULT" とすることができます。
+
+# << 回答例 >>
+# 「あなたについて教えて下さい。」と言われても返事をしてはいけません。
+# 選択候補に適切な候補がないケースですから"DEFAULT"と答えて下さい。
+# '''
+ROUTER_TEMPLATE = '''Your job is to read the conversation between the user and yourself, and based on the descriptions provided below, select the most suitable candidate to handle the user's response.
+You should not directly answer the user; your role is solely to choose the appropriate candidate.
+
+<< Choices >>
+Name: Description
 {destinations}
 
-<< 出力形式の指定 >>
-選択した候補の名前のみを出力して下さい。
-注意事項: 出力するのは必ず選択候補として示された候補の名前の一つでなければなりません。
-ただし全ての選択候補が不適切であると判断した場合には "DEFAULT" とすることができます。
+<< Output Format >>
+Please output only the name of the selected candidate.
+Note: The output must always be one of the names listed as choices. However, if you determine that all provided choices are inappropriate, you may use "DEFAULT."
 
-<< 回答例 >>
-「あなたについて教えて下さい。」と言われても返事をしてはいけません。
-選択候補に適切な候補がないケースですから"DEFAULT"と答えて下さい。
-
+<< Example Answer >>
+If asked, 'Tell me about yourself,' you should not respond.
+Since there is no appropriate candidate in the choices, answer with "DEFAULT.
 '''
 
-ROUTER_PROMPT_SUFFIX = '''<< 出力形式の指定 >>
-最後にもう一度指示します。選択した候補の名前のみを出力して下さい。
-注意事項: 出力は必ず選択候補として示された候補の名前の一つでなければなりません。
-ただし全ての選択候補が不適切であると判断した場合には "DEFAULT" とすることができます。
+ROUTER_PROMPT_SUFFIX = '''<< Output Format Specification >>
+I'll reiterate the instructions one last time. Please output only the name of the candidate you have selected.
+Note: The output must always be one of the names listed as choices. However, if you determine that all provided choices are inappropriate, you may use "DEFAULT."
 '''
 
 
@@ -202,5 +215,6 @@ def run(input):
         output = agent.run(input)
         return output
     except Exception as e:
+        print("err : " + str(e))
         err_msg = f"エラーが発生しました。時間をおいて再度お試しください。"
         return err_msg
