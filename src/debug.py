@@ -1,7 +1,6 @@
 from openai import InvalidRequestError
 
-from agents.tools.grobal import grobal_value as g
-import agents.main as main
+import agents
 
 from agents.tools import (
     horoscope,
@@ -10,7 +9,7 @@ from agents.tools import (
 )
 
 # デバッグ先の指定
-run = main.run
+run = agents.run
 
 while True:
     message = input(">> ")
@@ -19,7 +18,7 @@ while True:
         input_message = input(">> ")
         if input_message == "Y" or input_message == "y" or input_message == "yes" or input_message == "Yes":
             try:
-                buffer = g.memory.load_memory_variables({})
+                buffer = agents.MainAgent.memory.load_memory_variables({})
                 with open("chat_history.txt", mode="w") as f:
                     f.write(f'{buffer["chat_history"]}')
                     print("会話履歴を保存しました。")

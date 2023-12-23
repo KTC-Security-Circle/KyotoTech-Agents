@@ -8,19 +8,26 @@ import datetime
 from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-from .grobal import grobal_value as g
 
 
 # システムプロンプトの設定
-HOROSCOPE_SYSTEM_PROMPT = '''あなたは星占いの専門家です。
-星占いをしてその結果を回答します。
+# HOROSCOPE_SYSTEM_PROMPT = '''あなたは星占いの専門家です。
+# 星占いをしてその結果を回答します。
 
-ただし星占いには誕生日が必要です。
-もし誕生日が分からない場合は、誕生日を予測や仮定をせずに「星占いをするので誕生日を教えてください。」と回答して下さい。
+# ただし星占いには誕生日が必要です。
+# もし誕生日が分からない場合は、誕生日を予測や仮定をせずに「星占いをするので誕生日を教えてください。」と回答して下さい。
 
-誕生日がわかる場合は、例えば"4月24日"であれば"04/24"の形式に変換した上で horoscope 関数を使って占いを行って下さい。
+# 誕生日がわかる場合は、例えば"4月24日"であれば"04/24"の形式に変換した上で horoscope 関数を使って占いを行って下さい。
+# '''
+HOROSCOPE_SYSTEM_PROMPT = '''You are an expert in astrology and will provide horoscopes as a response.
+
+However, a birthday is necessary for astrology.
+If the birthday is unknown, please respond without making predictions or assumptions, asking, 'Please tell me your birthday for the horoscope.'
+
+If the birthday is known, for example, if it is 'April 24th,' please convert it into the format '04/24' and use the horoscope function to conduct the astrology reading.
+
+Respond in Japanese.
 '''
-
 
 
 # エージェントの初期化
@@ -62,21 +69,21 @@ def horoscope(birthday: str): # 誕生日を入力すると、星占いをして
 
 horoscope_tools = [horoscope]
 
-agent_kwargs = {
-    "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
-    "extra_prompt_messages": [g.chat_history]
-}
-horoscope_agent = initialize_agent(
-    horoscope_tools,
-    g.llm,
-    agent=AgentType.OPENAI_FUNCTIONS,
-    verbose=g.verbose,
-    agent_kwargs=agent_kwargs,
-    memory=g.readonly_memory
-)
+# agent_kwargs = {
+#     "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
+#     "extra_prompt_messages": [g.chat_history]
+# }
+# horoscope_agent = initialize_agent(
+#     horoscope_tools,
+#     g.llm,
+#     agent=AgentType.OPENAI_FUNCTIONS,
+#     verbose=g.verbose,
+#     agent_kwargs=agent_kwargs,
+#     memory=g.readonly_memory
+# )
 
-def run(input):
-    return horoscope_agent.run(input)
+# def run(input):
+#     return horoscope_agent.run(input)
 
 # debag
 # horoscope_agent.run("私の今日の運勢を教えて。")

@@ -1,10 +1,12 @@
-# import main
-from . import tools
+import os
 
-# if __name__ == "__main__":
-#     # ユーザーの入力を受け取る
-#     user_message = input("User >> ")
-#     # ユーザーの入力を引数にして実行する
-#     result = main.run(user_message)
-#     # 結果を表示する
-#     print("システム応答 : ", result)
+import langchain
+from langchain.chat_models import AzureChatOpenAI
+from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
+from langchain.prompts.chat import MessagesPlaceholder
+
+from agents.main import MainAgent
+from . import main, tools
+
+def run(input: str):
+    return MainAgent.run(input)

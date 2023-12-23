@@ -5,8 +5,6 @@ from langchain.prompts.chat import SystemMessagePromptTemplate
 
 from langchain.tools import tool
 
-from .grobal import grobal_value as g
-
 
 # プロンプトの設定
 # DEFAULT_SYSTEM_PROMPT = '''あなたは会話型アシスタントエージェントです。
@@ -19,7 +17,8 @@ from .grobal import grobal_value as g
 # - ユーザーにあなたができることを尋ねられた場合は、ask_can_do という関数を使ってユーザーにあなたができることを教えてください。
 # '''
 DEFAULT_SYSTEM_PROMPT = '''You are a conversational assistant agent.
-Please embody the role provided next and engage in a conversation with the user. Respond in Japanese.
+Please embody the role provided next and engage in a conversation with the user.
+Respond in Japanese.
 
 # role
 - You are "KyotoTECH君", an assistant agent.
@@ -45,22 +44,22 @@ def ask_can_do():  # ユーザーにあなたができることを教える関�
 
 default_tools = [ask_can_do]
 
-agent_kwargs = {
-    "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
-    "extra_prompt_messages": [g.chat_history]
-}
-default_agent = initialize_agent(
-    default_tools,
-    g.llm,
-    agent=AgentType.OPENAI_FUNCTIONS,
-    verbose=g.verbose,
-    agent_kwargs=agent_kwargs,
-    memory=g.readonly_memory
-)
+# agent_kwargs = {
+#     "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
+#     "extra_prompt_messages": [g.chat_history]
+# }
+# default_agent = initialize_agent(
+#     default_tools,
+#     g.llm,
+#     agent=AgentType.OPENAI_FUNCTIONS,
+#     verbose=g.verbose,
+#     agent_kwargs=agent_kwargs,
+#     memory=g.readonly_memory
+# )
 
 
-def run(input):
-    return default_agent.run(input)
+# def run(input):
+#     return default_agent.run(input)
 
 # debag
 # print(run("あなたについて教えて"))
