@@ -16,7 +16,6 @@ from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 
 
-
 # ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
 # 以下の選択候補からその説明を参考にしてユーザーの対応を任せるのに最も適した候補を選び、その名前を回答することです。
 # あなたが直接ユーザーへ回答してはいけません。あなたは対応を任せる候補を選ぶだけです。

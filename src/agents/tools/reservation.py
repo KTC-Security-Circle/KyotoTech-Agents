@@ -8,7 +8,7 @@ from langchain.tools import tool
 import json
 import requests
 import datetime
-from typing import Union
+from typing import Union, List, Dict
 from pydantic.v1 import BaseModel, Field
 
 verbose = True
@@ -53,8 +53,8 @@ parts_order 関数を実行する際の注文する部品とその個数の扱�
 また、parts_order 関数を実行する際、注文する部品とその個数は part_no_and_quantities に設定して下さい。
 
 part_no_and_quantities は注文する部品とその個数の表現する dict の list です。
-list の要素となる各 dict は key として 'part_no' と 'quantity' を持ちます。
-'part_no' の value が部品名称の文字列、'quantity'の value が個数を意味する数字の文字列です。
+list の要素となる各 dict は key として part_no と "quantity" を持ちます。
+part_no の value が部品名称の文字列、 "quantity" の value が個数を意味する数字の文字列です。
 以下は部品'J-26'を2個と部品'デカールC'を1枚注文する場合の part_no_and_quantities です。
 
 ```
@@ -77,7 +77,7 @@ class PartsOrderInput(BaseModel):
         description="部品注文の対象となる商品の名称です。例:'PG 1/24 ダンバイン'")
     product_no: str = Field(
         description="部品注文の対象となる商品の箱や説明書に記載されている6桁の数字の文字列です。")
-    part_no_and_quantities: list[dict[str, str]] = Field(description=(
+    part_no_and_quantities: List[Dict[str, str]] = Field(description=(
         '注文する部品とその個数の表現する dict の list です。\n'
         'dict は key "part_no" の value が部品名称の文字列、key "quantity" の value が個数を意味する整数です。\n'
         '例: 部品"J-26"を2個と部品"デカールC"を1枚注文する場合は、\n'
@@ -108,7 +108,7 @@ def parts_order(
     email: str,
     product_name: str,
     product_no: str,
-    part_no_and_quantities: list[dict[str, str]],
+    part_no_and_quantities: List[Dict[str, str]],
     confirmed: bool,
     canceled: bool,
 ) -> str:
@@ -139,25 +139,25 @@ def parts_order(
 
     has_required = check_params(name, kana, post_code, address, tel, email, product_name, product_no, part_no_and_quantities)
 
-    # if part_no_and_quantities:
-    #     part_no_and_quantities = "\n    ".join(
-    #         [f"{row.get('part_no','***')} x {row.get('quantity','***')}"
-    #          for row in part_no_and_quantities]
-    #     )
-    # else:
-    #     part_no_and_quantities = "***"
     if part_no_and_quantities:
-        parts_list = []
-        for row in part_no_and_quantities:
-            part_no = row.get('part_no', '***')
-            quantity = row.get('quantity', '***')
-            if part_no != '***' and quantity != '***':
-                parts_list.append(f"{part_no} x {quantity}")
-            else:
-                parts_list.append("***")
-        part_no_and_quantities = "\n    ".join(parts_list)
+        part_no_and_quantities = "\n    ".join(
+            [f"{row.get('part_no','***')} x {row.get('quantity','***')}"
+             for row in part_no_and_quantities]
+        )
     else:
         part_no_and_quantities = "***"
+    # if part_no_and_quantities:
+    #     parts_list = []
+    #     for row in part_no_and_quantities:
+    #         part_no = row.get('part_no', '***')
+    #         quantity = row.get('quantity', '***')
+    #         if part_no != '***' and quantity != '***':
+    #             parts_list.append(f"{part_no} x {quantity}")
+    #         else:
+    #             parts_list.append("***")
+    #     part_no_and_quantities = "\n    ".join(parts_list)
+    # else:
+    #     part_no_and_quantities = "***"
 
     # 注文情報のテンプレート
     order_template = (

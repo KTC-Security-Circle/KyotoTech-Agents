@@ -18,7 +18,7 @@ from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTempl
 from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 
-from agents import chain
+from agents import dispatcher
 from agents.tools import (
     horoscope,
     searchDB,
@@ -91,29 +91,29 @@ class MainAgent:
     
     # メインエージェントの設定
     tools = [
-        chain.Tool.from_function(
+        dispatcher.Tool.from_function(
             func=horoscope_agent.run,
             name="horoscope",
             description="This is the person in charge of astrology. This person should be in charge of handling conversations related to horoscopes.",
-            args_schema=chain.HoroscopeAgentInput,
+            args_schema=dispatcher.HoroscopeAgentInput,
             return_direct=True
         ),
-        chain.Tool.from_function(
+        dispatcher.Tool.from_function(
             func=search_database_agent.run,
             name="searchDB",
             description="This person is in charge of school database searches. This person should be responsible for searching the school database and handling conversations related to school information.",
-            args_schema=chain.SearchDBAgentInput,
+            args_schema=dispatcher.SearchDBAgentInput,
             return_direct=True
         ),
-        chain.Tool.from_function(
+        dispatcher.Tool.from_function(
             func=default_agent.run,
             name="DEFAULT",
             description="This is the person in charge of general conversations. This person should be assigned to handle conversations that are general and should not be left to a specific expert.",
-            args_schema=chain.DefaultAgentInput,
+            args_schema=dispatcher.DefaultAgentInput,
             return_direct=True
         ),
     ]
-    dispatcher_agent = chain.DispatcherAgent(
+    dispatcher_agent = dispatcher.DispatcherAgent(
         chat_model=llm, readonly_memory=readonly_memory, tools=tools, verbose=verbose)
     agent = AgentExecutor.from_agent_and_tools(
         agent=dispatcher_agent, tools=tools, memory=memory, verbose=verbose
