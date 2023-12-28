@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain.retrievers import AzureCognitiveSearchRetriever
@@ -33,7 +35,6 @@ Respond in Japanese.
 --------------------
 Extract search keywords from the prompts given by the user and store them in a variable named 'search_word'.
 Create a response based on the search results and reply to the user.
-Summarize the final answer in 150 characters or less.
 If the search results for the given keyword are inappropriate, do not attempt to formulate an answer. Instead, respond with 'I don't know.' and prompt the user to change the search keyword.
 --------------------
 

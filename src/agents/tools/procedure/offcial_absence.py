@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from langchain.memory import ConversationBufferMemory
 from langchain.chat_models import AzureChatOpenAI
 from langchain.agents import AgentType, initialize_agent
@@ -39,12 +42,12 @@ APPLICATION_ITEMS_SYSTEM_PROMPT = '''あなたは生徒からの公欠届の申�
 - あなたの「最終確認です。以下の内容で公欠届を申請しますが、よろしいですか?」の問いかけに対して、ユーザーから肯定的な返答が確認できた場合のみ application_items 関数を confirmed = true で実行し申請を行って下さい。
 - ユーザーから手続きをやめる、キャンセルする意思を伝えられた場合のみ、 application_items 関数を canceled = true で実行し、あなたはそれまでの公欠届の申請に関する内容を全て忘れます。
 
-# application_items 関数を実行する際の欠席する授業の時限と名称の扱い
-欠席する授業に関して、引数の first_period_class から fifth_period_class までの5つの時限の引数にそれぞれ設定してください。
-場合によってはすべて入れる必要がない場合もあります。
-first_period_class から fifth_period_class までの5つの引数の値は欠席する授業の名称とその講師名を持つ dict です。
-dict の key として class_name と instructor_name を持ちます。
-class_name の value が授業名の文字列、instructor_name の value が担当講師の文字列です。
+# application_items 関数を実行する際の欠席する授業の時限と名称、担当講師の扱い
+application_items 関数を実行する際、注文する部品とその個数は application_class に設定して下さい。
+application_class はの欠席する授業の時限と名称、担当講師の表現する dict の list です。
+list の要素となる各 dict は key として 'period_num' , 'class_name' , 'instructor' の3つを持ちます。
+'period_num' は欠席する授業の時限を表し、'class_name' は欠席する授業の名称を表し、'instructor' は欠席する授業の担当講師名を表します。
+'period_num' は1から5までの数字の文字列で表してください。
 
 
 '''
@@ -66,31 +69,26 @@ application_items 関数は次に示す例外を除いて confirmed = false で�
 '''
 
 
-# エージェントの初期化
+# # エージェントの初期化
 # class PeriodClass(BaseModel):
+#     period_num: int = Field(description="欠席する時限の数値です。")
+#     class_name: str = Field(description="欠席する授業の名称です。")
+#     instructor: str = Field(description="欠席する授業の担当講師名です。")
 
 
 
 class ApplicationItemsInput(BaseModel):
     date: str = Field(
-        description="公欠する日付です。形式は'2023/12/25'のような'年/月/日'の形式です。", default=None)
-    first_period_class: dict[str, str] = Field(description=(
-        "欠席する1時限目の Dict です。\n"
-        "Dict は key class_name の value が授業名の文字列、key instructor_name の value が担当講師の文字列です。\n"
-        "例: 授業名が'python機械学習'で担当講師が'木本'の場合は、\n"
+        description="公欠する日付です。形式は'2023/12/25'のような'年/月/日'の形式です。")
+    application_class: list[dict[str, str]] = Field(description=(
+        "欠席する授業の時限と名称、担当講師名の dict の list です。\n"
+        "dict の key として period_num , class_name , instructor の3つをを持ちます。\n"
+        "例: 1限目と2限目のpython機械学習の木本先生の授業を欠席する場合は、\n"
         "\n"
-        "{class_name: 'python機械学習', instructor_name: '木本'}\n"
+        "[{'period_num': '1', 'class_name': 'python機械学習', 'instructor': '木本'}, {'period_num': '2', 'class_name': 'python機械学習', 'instructor': '木本'}]"
         "\n"
-        "としてください。"),
+        "としてください。")
     )
-    second_period_class: dict[str, str] = Field(
-        description="欠席する2時限目の dict です。\n 形式は first_period_class と同じです。")
-    third_period_class: dict[str, str] = Field(
-        description="欠席する3時限目の dict です。\n 形式は first_period_class と同じです。",)
-    fourth_period_class: dict[str, str] = Field(
-        description="欠席する4時限目の dict です。\n 形式は first_period_class と同じです。",)
-    fifth_period_class: dict[str, str] = Field(
-        description="欠席する5時限目の dict です。\n 形式は first_period_class と同じです。",)
     reason: str = Field(description="公欠の理由です。")
     confirmed: bool = Field(description=(
         "注文内容の最終確認状況です。最終確認が出来ている場合は True, そうでなければ False としてください。\n"
@@ -108,11 +106,7 @@ class ApplicationItemsInput(BaseModel):
 @tool("application_items", return_direct=True, args_schema=ApplicationItemsInput)
 def application_items(
     date: str,
-    first_period_class: dict[str, str],
-    second_period_class: dict[str, str],
-    third_period_class: dict[str, str],
-    fourth_period_class: dict[str, str],
-    fifth_period_class: dict[str, str],
+    application_class: list[dict[str, str]],
     reason: str,
     confirmed: bool,
     canceled: bool,
@@ -121,32 +115,43 @@ def application_items(
     if canceled:
         return "わかりました。また各種申請が必要になったらご相談ください。"
 
-    def check_params(date, first_period_class, second_period_class, third_period_class, fourth_period_class, fifth_period_class, reason):
+    def check_params(date, application_class, reason):
         if date is None or date == "***" or date == "":
             return False
         if reason is None or reason == "***" or reason == "":
             return False
-        for arg in [first_period_class, second_period_class, third_period_class, fourth_period_class, fifth_period_class]:
-            if arg is None or arg == "***" or arg == "":
-                return False
-            if "class_name" not in arg or "instructor_name" not in arg:
-                return False
-            if arg["class_name"] == "***" or arg["instructor_name"] == "***":
+        if not application_class:
+            return False
+        for app_class in application_class:
+            period_num = app_class.get("period_num", "***")
+            class_name = app_class.get("class_name", "***")
+            instructor = app_class.get("instructor", "***")
+            if period_num == "***" or class_name == "***" or instructor == "***":
                 return False
 
         return True
 
-    has_required = check_params(date, first_period_class, second_period_class,
-                                third_period_class, fourth_period_class, fifth_period_class, reason)
+    has_required = check_params(date, application_class, reason)
+    
+    if application_class:
+        for row in application_class:
+            period_num = row.get("period_num")
+            class_name = row.get("class_name")
+            instructor = row.get("instructor")
+            for key in ["period_num", "class_name", "instructor"]:
+                if key == None:
+                    key = "***"
+        application_class = "\n   ".join(
+            [f"{period_num}限目: {class_name}/{instructor}"]
+        )
+    else:
+        application_class = "***"
 
     # 注文情報のテンプレート
     order_template = (
         f'・公欠日: {date}\n'
-        f'・1限目: {first_period_class["class_name"]}/{first_period_class["instructor_name"]}\n'
-        f'・2限目: {second_period_class["class_name"]}/{second_period_class["instructor_name"]}\n'
-        f'・3限目: {third_period_class["class_name"]}/{third_period_class["instructor_name"]}\n'
-        f'・4限目: {fourth_period_class["class_name"]}/{fourth_period_class["instructor_name"]}\n'
-        f'・5限目: {fifth_period_class["class_name"]}/{fifth_period_class["instructor_name"]}\n'
+        f'・欠席する授業の時限と名称、担当講師名:\n'
+        f'   {application_class}\n'
         f'・公欠事由: {reason}\n'
     )
 
@@ -164,13 +169,12 @@ def application_items(
     )
 
     # 注文完了のテンプレート
-    def request_official_absence(date, first_period_class, second_period_class, third_period_class, fourth_period_class, fifth_period_class, reason):
+    def request_official_absence(date, application_class, reason):
         try:
             datetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
             file_dir = f'{os.path.dirname(os.path.abspath(__file__))}/official_absence/{datetime}.json'
             with open(file_dir, "w") as f:
-                official_absence_template = {'official_absence': {'adsence_time': datetime, 'date': date, 'first_period_class': first_period_class, 'second_period_class': second_period_class,
-                                                                  'third_period_class': third_period_class, 'fourth_period_class': fourth_period_class, 'fifth_period_class': fifth_period_class, 'reason': reason}}
+                official_absence_template = {'official_absence': {'adsence_time': datetime, 'date': date, 'application_class': application_class, 'reason': reason}}
                 f.write(json.dumps(official_absence_template, indent=4))
             response = (
                 f'公欠届を以下の内容で申請しました。\n'
@@ -187,7 +191,7 @@ def application_items(
         return response
 
     if has_required and confirmed:
-        return request_official_absence(date, first_period_class, second_period_class, third_period_class, fourth_period_class, fifth_period_class, reason)
+        return request_official_absence(date, application_class, reason)
     else:
         if has_required:
             return confirm_template

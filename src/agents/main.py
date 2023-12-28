@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 import langchain
 from langchain.chains.llm import LLMChain
