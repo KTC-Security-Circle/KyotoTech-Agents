@@ -246,29 +246,6 @@ official_absence_agent.agent.prompt.messages = messages
 # message = "公欠届を申請したいです。"
 # print(official_absence_agent.run(message))
 
-# def request_official_absence(date, application_class, reason):
-#     t_delta = datetime.timedelta(hours=9)
-#     JST = datetime.timezone(t_delta, 'JST')
-#     now = datetime.datetime.now(JST)
-#     date_time = now.strftime('%Y%m%d%H%M%S')
-#     file_dir = f'{os.path.dirname(os.path.abspath(__file__))}/official_absence/{date_time}.json'
-#     with open(file_dir, "w") as f:
-#         official_absence_template = {'official_absence': {'adsence_time': date_time, 'date': date, 'application_class': application_class, 'reason': reason}}
-#         f.write(json.dumps(official_absence_template,
-#                 indent=4, ensure_ascii=False))
-#     response = (
-#         f'公欠届を以下の内容で申請しました。\n'
-#         f'\n学生ポータルサイトの各種申請詳細に今回の申請内容が申請されていない場合は、\n'
-#         f'学校教員に直接申請内容を伝えてください。'
-#     )
-#     return response
-
-# t = {'date': '12月21日', 'application_class': [{'period_num': '1', 'class_name': 'python機械学習', 'instructor': '木本先生'}, {'period_num': '2', 'class_name': 'python機械学習', 'instructor': '木本先生'}], 'reason': 'FTPのため'}
-# res = request_official_absence(
-#     date=t['date'], application_class=t['application_class'], reason=t['reason'])
-# print(res)
-
-
 while True:
     message = input(">> ")
     if message == "exit":
