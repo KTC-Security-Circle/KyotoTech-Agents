@@ -54,6 +54,7 @@ list の要素となる各 dict は key として 'period_num' , 'class_name' , 
 APPLICATION_ITEMS_SSUFFIX_PROMPT = '''
 
 # 重要な注意事項
+初期値は "date": "***" , "application_class": None , "reason": "***" です。
 必要な情報に未知の項目がある場合は予測や仮定をせず "***" に置き換えてください。
 ユーザーから与えられた情報以外は使用せず、想像で補完しないでください。
 
@@ -80,7 +81,7 @@ application_items 関数は次に示す例外を除いて confirmed = false で�
 class ApplicationItemsInput(BaseModel):
     date: str = Field(
         description="公欠する日付です。形式は'2023/12/25'のような'年/月/日'の形式です。")
-    application_class: list[dict[str, str]] = Field(description=(
+    application_class: list[dict[str, str]] | None = Field(description=(
         "欠席する授業の時限と名称、担当講師名の dict の list です。\n"
         "dict の key として period_num , class_name , instructor の3つをを持ちます。\n"
         "例: 1限目と2限目のpython機械学習の木本先生の授業を欠席する場合は、\n"
@@ -106,7 +107,7 @@ class ApplicationItemsInput(BaseModel):
 @tool("application_items", return_direct=True, args_schema=ApplicationItemsInput)
 def application_items(
     date: str,
-    application_class: list[dict[str, str]],
+    application_class: list[dict[str, str]] | None,
     reason: str,
     confirmed: bool,
     canceled: bool,
@@ -138,14 +139,14 @@ def application_items(
             period_num = row.get("period_num")
             class_name = row.get("class_name")
             instructor = row.get("instructor")
-            for key in ["period_num", "class_name", "instructor"]:
+            for key in [period_num, class_name, instructor]:
                 if key == None:
                     key = "***"
         application_class = "\n   ".join(
-            [f"{period_num}限目: {class_name}/{instructor}"]
-        )
+            [f"{row['period_num']}限目: {row['class_name']}/{row['instructor']}" for row in application_class]
+            )
     else:
-        application_class = "***"
+        application_class = "***限目: ***/***先生"
 
     # 注文情報のテンプレート
     order_template = (
@@ -171,11 +172,15 @@ def application_items(
     # 注文完了のテンプレート
     def request_official_absence(date, application_class, reason):
         try:
-            datetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-            file_dir = f'{os.path.dirname(os.path.abspath(__file__))}/official_absence/{datetime}.json'
-            with open(file_dir, "w") as f:
-                official_absence_template = {'official_absence': {'adsence_time': datetime, 'date': date, 'application_class': application_class, 'reason': reason}}
-                f.write(json.dumps(official_absence_template, indent=4))
+            t_delta = datetime.timedelta(hours=9)
+            JST = datetime.timezone(t_delta, 'JST')
+            now = datetime.datetime.now(JST)
+            date_time = now.strftime('%Y%m%d%H%M%S')
+            file_dir = f'{os.path.dirname(os.path.abspath(__file__))}/official_absence/{date_time}.json'
+            with open(file_dir, "w", encoding='utf-8') as f:
+                official_absence_template = {'official_absence': {'adsence_time': date_time, 'date': date, 'application_class': application_class, 'reason': reason}}
+                f.write(json.dumps(official_absence_template,
+                        indent=4, ensure_ascii=False))
             response = (
                 f'公欠届を以下の内容で申請しました。\n'
                 f'\n{order_template}'
@@ -240,6 +245,30 @@ official_absence_agent.agent.prompt.messages = messages
 
 # message = "公欠届を申請したいです。"
 # print(official_absence_agent.run(message))
+
+# def request_official_absence(date, application_class, reason):
+#     t_delta = datetime.timedelta(hours=9)
+#     JST = datetime.timezone(t_delta, 'JST')
+#     now = datetime.datetime.now(JST)
+#     date_time = now.strftime('%Y%m%d%H%M%S')
+#     file_dir = f'{os.path.dirname(os.path.abspath(__file__))}/official_absence/{date_time}.json'
+#     with open(file_dir, "w") as f:
+#         official_absence_template = {'official_absence': {'adsence_time': date_time, 'date': date, 'application_class': application_class, 'reason': reason}}
+#         f.write(json.dumps(official_absence_template,
+#                 indent=4, ensure_ascii=False))
+#     response = (
+#         f'公欠届を以下の内容で申請しました。\n'
+#         f'\n学生ポータルサイトの各種申請詳細に今回の申請内容が申請されていない場合は、\n'
+#         f'学校教員に直接申請内容を伝えてください。'
+#     )
+#     return response
+
+# t = {'date': '12月21日', 'application_class': [{'period_num': '1', 'class_name': 'python機械学習', 'instructor': '木本先生'}, {'period_num': '2', 'class_name': 'python機械学習', 'instructor': '木本先生'}], 'reason': 'FTPのため'}
+# res = request_official_absence(
+#     date=t['date'], application_class=t['application_class'], reason=t['reason'])
+# print(res)
+
+
 while True:
     message = input(">> ")
     if message == "exit":

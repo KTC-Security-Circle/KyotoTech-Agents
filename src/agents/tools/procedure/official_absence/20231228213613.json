@@ -1,0 +1,19 @@
+{
+    "official_absence": {
+        "adsence_time": "20231228213613",
+        "date": "12\u670821\u65e5",
+        "application_class": [
+            {
+                "period_num": "1",
+                "class_name": "python\u6a5f\u68b0\u5b66\u7fd2",
+                "instructor": "\u6728\u672c\u5148\u751f"
+            },
+            {
+                "period_num": "2",
+                "class_name": "python\u6a5f\u68b0\u5b66\u7fd2",
+                "instructor": "\u6728\u672c\u5148\u751f"
+            }
+        ],
+        "reason": "FTP\u306e\u305f\u3081"
+    }
+}
