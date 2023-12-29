@@ -9,9 +9,7 @@ import langchain
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate
 from langchain.tools import tool
 import json
-import requests
 import datetime
-from typing import Union, List, Dict
 from pydantic.v1 import BaseModel, Field
 
 verbose = True
@@ -246,9 +244,9 @@ official_absence_agent.agent.prompt.messages = messages
 # message = "公欠届を申請したいです。"
 # print(official_absence_agent.run(message))
 
-while True:
-    message = input(">> ")
-    if message == "exit":
-        break
-    response = official_absence_agent.run(message)
-    print(response)
+# while True:
+#     message = input(">> ")
+#     if message == "exit":
+#         break
+#     response = official_absence_agent.run(message)
+#     print(response)

@@ -10,7 +10,7 @@
 
 '''
 from agents.main import MainAgent
-from agents import main, tools
+from agents import tools
 
 
 

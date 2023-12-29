@@ -1,0 +1,14 @@
+{
+    "late_notification": {
+        "adsence_time": "20231229175419",
+        "date": "12月21日",
+        "late_class": "1限",
+        "in_class_time": "10:00",
+        "late_class_name": "python機械学習",
+        "late_class_instructor": "木本先生",
+        "use_public_transportation": "JR西日本",
+        "use_transportation_name": "琵琶湖線",
+        "late_time": "30分",
+        "check_late_time": "確認済み"
+    }
+}
