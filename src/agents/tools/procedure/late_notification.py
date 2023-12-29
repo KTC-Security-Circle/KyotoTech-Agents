@@ -47,9 +47,6 @@ LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT = '''あなたは生徒からの遅延届�
 - あなたの「最終確認です。以下の内容で遅延届を申請しますが、よろしいですか?」の問いかけに対して、ユーザーから肯定的な返答が確認できた場合のみ late_notification_items 関数を confirmed = true で実行し申請を行って下さい。
 - ユーザーから手続きをやめる、キャンセルする意思を伝えられた場合のみ、 late_notification_items 関数を canceled = true で実行し、あなたはそれまでの公欠届の申請に関する内容を全て忘れます。
 
-'''
-LATE_NOTIFICATION_ITEMS_SSUFFIX_PROMPT = '''
-
 # 重要な注意事項
 初期値は全て "***" です。
 必要な情報に未知の項目がある場合は予測や仮定をせず "***" に置き換えてください。
@@ -64,14 +61,9 @@ late_notification_items 関数は次に示す例外を除いて confirmed = fals
 ユーザーから肯定的な返答が確認できた場合のみ late_notification_items 関数を confirmed = true で実行して部品を注文してください。
 
 最終確認に対するユーザーの肯定的な返答なしで late_notification_items 関数を confirmed = true で実行することは誤申請であり事故になるので、固く禁止します。
+
 '''
 
-
-# # エージェントの初期化
-# class PeriodClass(BaseModel):
-#     period_num: int = Field(description="欠席する時限の数値です。")
-#     class_name: str = Field(description="欠席する授業の名称です。")
-#     instructor: str = Field(description="欠席する授業の担当講師名です。")
 
 
 
@@ -203,43 +195,44 @@ def late_notification_items(
 
 late_notification_items_tools = [late_notification_items]
 
-memory = ConversationBufferMemory(
-    memory_key="chat_history", return_messages=True)
-chat_history = MessagesPlaceholder(variable_name='chat_history')
+
 
 # モデルの初期化
-llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
-    openai_api_base=os.environ["OPENAI_API_BASE"],
-    openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-    openai_api_key=os.environ["OPENAI_API_KEY"],
-    openai_api_type="azure",
-    model_kwargs={"top_p": 0.1, "function_call": {
-        "name": "late_notification_items"}}
-)
+# llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
+#     openai_api_base=os.environ["OPENAI_API_BASE"],
+#     openai_api_version=os.environ["OPENAI_API_VERSION"],
+#     deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
+#     openai_api_key=os.environ["OPENAI_API_KEY"],
+#     openai_api_type="azure",
+#     model_kwargs={"top_p": 0.1, "function_call": {
+#         "name": "late_notification_items"}}
+# )
 
-agent_kwargs = {
-    "system_message": SystemMessagePromptTemplate.from_template(template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT),
-    "extra_prompt_messages": [chat_history]
-}
-late_notification_agent = initialize_agent(
-    late_notification_items_tools,
-    llm,
-    agent=AgentType.OPENAI_FUNCTIONS,
-    verbose=verbose,
-    agent_kwargs=agent_kwargs,
-    memory=memory
-)
+def test(input, verbose, memory, chat_history, llm):
+    test_llm = llm.copy()
+    test_llm.model_kwargs = {"top_p": 0.1, "function_call": {"name": "late_notification_items"}}
+    print(test_llm)
+    print(verbose)
+    print(memory)
+    print(chat_history)
 
-
-messages = []
-messages.extend(late_notification_agent.agent.prompt.messages[:3])
-messages.append(SystemMessagePromptTemplate.from_template(
-    template=LATE_NOTIFICATION_ITEMS_SSUFFIX_PROMPT),)
-messages.append(late_notification_agent.agent.prompt.messages[3])
-late_notification_agent.agent.prompt.messages = messages
-
-
+def run(input, verbose, memory, chat_history, llm):
+    late_notification_llm = llm.copy()
+    late_notification_llm.model_kwargs = {"top_p": 0.1, "function_call": {"name": "late_notification_items"}}
+    agent_kwargs = {
+        "system_message": SystemMessagePromptTemplate.from_template(template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT),
+        "extra_prompt_messages": [chat_history]
+    }
+    late_notification_agent = initialize_agent(
+        late_notification_items_tools,
+        late_notification_llm,
+        agent=AgentType.OPENAI_FUNCTIONS,
+        verbose=verbose,
+        agent_kwargs=agent_kwargs,
+        memory=memory
+    )
+    res = late_notification_agent.run(input)
+    return res
 
 # message = "公欠届を申請したいです。"
 # print(official_absence_agent.run(message))

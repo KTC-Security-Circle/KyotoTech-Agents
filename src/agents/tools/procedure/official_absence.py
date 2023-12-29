@@ -48,9 +48,6 @@ list の要素となる各 dict は key として 'period_num' , 'class_name' , 
 'period_num' は1から5までの数字の文字列で表してください。
 
 
-'''
-APPLICATION_ITEMS_SSUFFIX_PROMPT = '''
-
 # 重要な注意事項
 初期値は "date": "***" , "application_class": None , "reason": "***" です。
 必要な情報に未知の項目がある場合は予測や仮定をせず "***" に置き換えてください。
@@ -65,14 +62,11 @@ application_items 関数は次に示す例外を除いて confirmed = false で�
 ユーザーから肯定的な返答が確認できた場合のみ application_items 関数を confirmed = true で実行して部品を注文してください。
 
 最終確認に対するユーザーの肯定的な返答なしで application_items 関数を confirmed = true で実行することは誤申請であり事故になるので、固く禁止します。
+
+
 '''
 
 
-# # エージェントの初期化
-# class PeriodClass(BaseModel):
-#     period_num: int = Field(description="欠席する時限の数値です。")
-#     class_name: str = Field(description="欠席する授業の名称です。")
-#     instructor: str = Field(description="欠席する授業の担当講師名です。")
 
 
 
@@ -140,17 +134,17 @@ def application_items(
             for key in [period_num, class_name, instructor]:
                 if key == None:
                     key = "***"
-        application_class = "\n   ".join(
+        application_class_template = "\n   ".join(
             [f"{row['period_num']}限目: {row['class_name']}/{row['instructor']}" for row in application_class]
             )
     else:
-        application_class = "***限目: ***/***先生"
+        application_class_template = "***限目: ***/***先生"
 
     # 注文情報のテンプレート
     order_template = (
         f'・公欠日: {date}\n'
         f'・欠席する授業の時限と名称、担当講師名:\n'
-        f'   {application_class}\n'
+        f'   {application_class_template}\n'
         f'・公欠事由: {reason}\n'
     )
 
@@ -204,41 +198,36 @@ def application_items(
 
 application_items_tools = [application_items]
 
-memory = ConversationBufferMemory(
-    memory_key="chat_history", return_messages=True)
-chat_history = MessagesPlaceholder(variable_name='chat_history')
 
 # モデルの初期化
-llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
-    openai_api_base=os.environ["OPENAI_API_BASE"],
-    openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-    openai_api_key=os.environ["OPENAI_API_KEY"],
-    openai_api_type="azure",
-    model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
-)
-
-agent_kwargs = {
-    "system_message": SystemMessagePromptTemplate.from_template(template=APPLICATION_ITEMS_SYSTEM_PROMPT),
-    "extra_prompt_messages": [chat_history]
-}
-official_absence_agent = initialize_agent(
-    application_items_tools,
-    llm,
-    agent=AgentType.OPENAI_FUNCTIONS,
-    verbose=verbose,
-    agent_kwargs=agent_kwargs,
-    memory=memory
-)
+# llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
+#     openai_api_base=os.environ["OPENAI_API_BASE"],
+#     openai_api_version=os.environ["OPENAI_API_VERSION"],
+#     deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
+#     openai_api_key=os.environ["OPENAI_API_KEY"],
+#     openai_api_type="azure",
+#     model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
+# )
 
 
-messages = []
-messages.extend(official_absence_agent.agent.prompt.messages[:3])
-messages.append(SystemMessagePromptTemplate.from_template(
-    template=APPLICATION_ITEMS_SSUFFIX_PROMPT),)
-messages.append(official_absence_agent.agent.prompt.messages[3])
-official_absence_agent.agent.prompt.messages = messages
 
+
+def run(input, verbose, memory, chat_history, llm):
+    official_absence_llm = llm.copy()
+    official_absence_llm.model_kwargs = {"top_p": 0.1, "function_call": {"name": "application_items"}}
+    agent_kwargs = {
+        "system_message": SystemMessagePromptTemplate.from_template(template=APPLICATION_ITEMS_SYSTEM_PROMPT),
+        "extra_prompt_messages": [chat_history]
+    }
+    official_absence_agent = initialize_agent(
+        application_items_tools,
+        application_items,
+        agent=AgentType.OPENAI_FUNCTIONS,
+        verbose=verbose,
+        agent_kwargs=agent_kwargs,
+        memory=memory
+    )
+    return official_absence_agent.run(input)
 
 
 # message = "公欠届を申請したいです。"

@@ -167,7 +167,7 @@ class DefaultAgentInput(BaseModel):
 
 # tools = [
 #     Tool.from_function(
-#         func=horoscope_agent.run,
+#         func=horoscope.run,
 #         name="horoscope",
 #         description="星占いの担当者です。星占いに関係する会話の対応はこの担当者に任せるべきです。",
 #         args_schema=HoroscopeAgentInput,

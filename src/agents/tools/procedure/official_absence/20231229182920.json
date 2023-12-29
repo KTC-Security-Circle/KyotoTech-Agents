@@ -1,0 +1,19 @@
+{
+    "official_absence": {
+        "adsence_time": "20231229182920",
+        "date": "2023/12/21",
+        "application_class": [
+            {
+                "period_num": "1",
+                "class_name": "python機械学習",
+                "instructor": "木本先生"
+            },
+            {
+                "period_num": "2",
+                "class_name": "python機械学習",
+                "instructor": "木本先生"
+            }
+        ],
+        "reason": "FTPのため"
+    }
+}

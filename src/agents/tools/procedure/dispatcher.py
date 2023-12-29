@@ -1,5 +1,6 @@
 import os
 
+import langchain
 from langchain.chains.llm import LLMChain
 from langchain.memory import ReadOnlySharedMemory
 from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor
@@ -14,6 +15,33 @@ from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
 from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
+from langchain.chat_models import AzureChatOpenAI
+from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
+
+
+import late_notification
+import official_absence
+
+
+verbose = True
+langchain.debug = verbose
+
+# Azure OpenAIのAPIを読み込み。
+llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
+    openai_api_base=os.environ["OPENAI_API_BASE"],
+    openai_api_version=os.environ["OPENAI_API_VERSION"],
+    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
+    openai_api_key=os.environ["OPENAI_API_KEY"],
+    openai_api_type="azure",
+    temperature=0,
+    model_kwargs={"top_p": 0.1}
+)
+
+# 会話メモリの定義
+memory = ConversationBufferMemory(
+    memory_key="chat_history", return_messages=True)
+readonly_memory = ReadOnlySharedMemory(memory=memory)
+chat_history = MessagesPlaceholder(variable_name='chat_history')
 
 
 # ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
@@ -145,62 +173,85 @@ class DispatcherAgent(BaseSingleActionAgent):
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
 
 
-class HoroscopeAgentInput(BaseModel):
+def defalt_answer():
+    res = (
+        f'私が行うことのできる各種申請は以下の通りです。\n'
+        f'・公欠届\n'
+        f'・遅延届\n'
+        f'○○を申請したいと言ってもらえれば、詳細を聞き申請をすることができます。'
+    )
+    return res
+
+def late_notification_agent(input):
+    return late_notification.run(input=input, verbose=verbose, memory=memory, chat_history=chat_history, llm=llm)
+
+def official_absence_agent(input):
+    return official_absence.run(input=input, verbose=verbose, memory=memory, chat_history=chat_history, llm=llm)
+
+
+class LateNotificationAgentInput(BaseModel):
     user_utterance: str = Field(
-        description="This is the user's most recent utterance that is communicated to the astrologer.")
+        description="This is the user's most recent utterance that is communicated to the person in charge of delay notification application")
 
 # class PartsOrderAgentInput(BaseModel):
 #     user_utterance: str = Field(
 #         description="プラモデルの部品の個別注文の担当者に伝達するユーザーの直近の発話内容です。")
 
 
-class SearchDBAgentInput(BaseModel):
+class OfficialAbsenceAgentInput(BaseModel):
     user_utterance: str = Field(
-        description="The user's most recent utterance that is communicated to the person in charge of the school database search.")
+        description="The user's most recent utterance that is communicated to the person in charge of application for official absence notification")
 
 
-class DefaultAgentInput(BaseModel):
-    user_utterance: str = Field(
-        description="This is the user's most recent utterance that communicates general content to the person in charge.")
 
 
-# tools = [
-#     Tool.from_function(
-#         func=horoscope_agent.run,
-#         name="horoscope",
-#         description="星占いの担当者です。星占いに関係する会話の対応はこの担当者に任せるべきです。",
-#         args_schema=HoroscopeAgentInput,
-#         return_direct=True
-#     ),
-#     # Tool.from_function(
-#     #     func=parts_order_agent,
-#     #     name="parts_order_agent",
-#     #     description="プラモデルの部品の個別注文の担当者です。プラモデルの部品注文やキャンセルに関係する会話の対応はこの担当者に任せるべきです。",
-#     #     args_schema=PartsOrderAgentInput,
-#     #     return_direct=True
-#     # ),
-#     Tool.from_function(
-#         func=search_database_agent.run,
-#         name="searchDB",
-#         description="学校データベース検索の担当者です。学校データベースの検索や学校情報に関係する会話の対応はこの担当者に任せるべきです。",
-#         args_schema=SearchDBAgentInput,
-#         return_direct=True
-#     ),
-#     Tool.from_function(
-#         func=default_agent.run,
-#         name="DEFAULT",
-#         description="一般的な会話の担当者です。一般的で特定の専門家に任せるべきでない会話の対応はこの担当者に任せるべきです。",
-#         args_schema=DefaultAgentInput,
-#         return_direct=True
-#     ),
-# ]
 
-# dispatcher_agent = main.DispatcherAgent(
-#     chat_model=llm, readonly_memory=readonly_memory, tools=main.tools, verbose=verbose)
+tools = [
+    Tool.from_function(
+        func=late_notification_agent,
+        name="late_notification",
+        description="遅延届の申請に関する担当者です。遅延届に関係する会話の対応はこの担当者に任せるべきです。",
+        args_schema=LateNotificationAgentInput,
+        return_direct=True
+    ),
+    Tool.from_function(
+        func=official_absence_agent,
+        name="official_absence",
+        description="公欠届の申請に関する担当者です。公欠届に関係する会話の対応はこの担当者に任せるべきです。",
+        args_schema=OfficialAbsenceAgentInput,
+        return_direct=True
+    ),
+    Tool.from_function(
+        func=defalt_answer,
+        name="DEFAULT",
+        description="特定の申請に関する情報がない場合はこの担当者に任せるべきです。",
+        return_direct=True
+    ),
+]
 
-# agent = AgentExecutor.from_agent_and_tools(
-#     agent=dispatcher_agent, tools=main.tools, memory=memory, verbose=verbose
-# )
+
+
+
+dispatcher_agent = DispatcherAgent(
+    chat_model=llm, readonly_memory=readonly_memory, tools=tools, verbose=verbose)
+agent = AgentExecutor.from_agent_and_tools(
+    agent=dispatcher_agent, tools=tools, memory=memory, verbose=verbose
+)
+
+
 
 # def run(input: str):
 #     return agent.run(input)
+
+# while(True):
+#     message = input(">> ")
+#     if message == "exit" or message == ":q":
+#         break
+#     try:
+#         agent.run(message)
+#     except Exception as e:
+#         print(e)
+
+message = "公欠届を申請したいです。"
+print(late_notification(message))
+
