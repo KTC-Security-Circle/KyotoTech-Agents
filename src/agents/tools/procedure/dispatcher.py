@@ -173,7 +173,7 @@ class DispatcherAgent(BaseSingleActionAgent):
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
 
 
-def defalt_answer():
+def defalt_answer(input):
     res = (
         f'私が行うことのできる各種申請は以下の通りです。\n'
         f'・公欠届\n'
@@ -183,19 +183,17 @@ def defalt_answer():
     return res
 
 def late_notification_agent(input):
-    return late_notification.run(input=input, verbose=verbose, memory=memory, chat_history=chat_history, llm=llm)
+    return late_notification.run(message=input, verbose=verbose, memory=readonly_memory, chat_history=chat_history, llm=llm)
 
 def official_absence_agent(input):
-    return official_absence.run(input=input, verbose=verbose, memory=memory, chat_history=chat_history, llm=llm)
+    return official_absence.run(message=input, verbose=verbose, memory=readonly_memory, chat_history=chat_history, llm=llm)
+
+
 
 
 class LateNotificationAgentInput(BaseModel):
     user_utterance: str = Field(
         description="This is the user's most recent utterance that is communicated to the person in charge of delay notification application")
-
-# class PartsOrderAgentInput(BaseModel):
-#     user_utterance: str = Field(
-#         description="プラモデルの部品の個別注文の担当者に伝達するユーザーの直近の発話内容です。")
 
 
 class OfficialAbsenceAgentInput(BaseModel):
@@ -243,15 +241,19 @@ agent = AgentExecutor.from_agent_and_tools(
 # def run(input: str):
 #     return agent.run(input)
 
+
 # while(True):
 #     message = input(">> ")
 #     if message == "exit" or message == ":q":
 #         break
 #     try:
-#         agent.run(message)
+#         output = agent.run(message)
+#         print(output)
 #     except Exception as e:
 #         print(e)
 
-message = "公欠届を申請したいです。"
-print(late_notification(message))
+
+
+# message = "公欠届を申請したいです。"
+# print(late_notification_agent(message))
 
