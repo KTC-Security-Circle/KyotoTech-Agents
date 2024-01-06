@@ -1,0 +1,14 @@
+{
+    "late_notification": {
+        "adsence_time": "20240106200050",
+        "date": "2023/01/09",
+        "late_class": "1限",
+        "in_class_time": "10:00",
+        "late_class_name": "web基礎",
+        "late_class_instructor": "木本先生",
+        "use_public_transportation": "JR西日本",
+        "use_transportation_name": "琵琶湖線",
+        "late_time": "30分",
+        "check_late_time": "確認済み"
+    }
+}
