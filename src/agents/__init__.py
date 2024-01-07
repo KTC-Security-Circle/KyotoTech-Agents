@@ -20,7 +20,7 @@ from agents.dispatcher import MainAgent
 
 
 # デバッグモードを有効
-verbose = True
+verbose = False
 langchain.debug = verbose
 
 # Azure OpenAIのAPIを読み込み。
