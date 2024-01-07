@@ -18,16 +18,14 @@ from typing import Any, List, Tuple, Set, Union
 from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 
+from agents.tools.procedure import(
+    late_notification,
+    official_absence
+)
 
-import late_notification
-import official_absence
-
-
-verbose = True
-langchain.debug = verbose
 
 # Azure OpenAIのAPIを読み込み。
-llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
+default_llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
     openai_api_base=os.environ["OPENAI_API_BASE"],
     openai_api_version=os.environ["OPENAI_API_VERSION"],
     deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
@@ -36,12 +34,6 @@ llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
     temperature=0,
     model_kwargs={"top_p": 0.1}
 )
-
-# 会話メモリの定義
-memory = ConversationBufferMemory(
-    memory_key="chat_history", return_messages=True)
-readonly_memory = ReadOnlySharedMemory(memory=memory)
-chat_history = MessagesPlaceholder(variable_name='chat_history')
 
 
 # プロンプトの定義
@@ -194,77 +186,77 @@ class DispatcherAgent(BaseSingleActionAgent):
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
 
 
-# この関数は、特定の申請に関する情報がない場合に呼び出されます。
-def defalt_answer(input):
-    res = (
-        f'私が行うことのできる各種申請は以下の通りです。\n'
-        f'・公欠届\n'
-        f'・遅延届\n'
-        f'○○を申請したいと言ってもらえれば、詳細を聞き申請をすることができます。'
-    )
-    return res
+class ProcedureAgent:
+    llm: AzureChatOpenAI = default_llm
+    memory: List[str] = []
+    chat_history: List[str] = []
+    verbose: bool = False
+    '''各種申請エージェントのクラスです。'''
+    
+    def __init__(self, llm, memory, chat_history, verbose):
+        self.llm = llm
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
+        
+        self.defalt_answer = (
+            f'私が行うことのできる各種申請は以下の通りです。\n'
+            f'・公欠届\n'
+            f'・遅延届\n'
+            f'○○を申請したいと言ってもらえれば、詳細を聞き申請をすることができます。'
+        )
+        def defalt_answer_wrapper(input):
+            return self.defalt_answer()
+        self.late_notification_agent = late_notification.Agent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        def late_notification_agent_wrapper(input):
+            return self.late_notification_agent.run(input)
+        self.official_absence_agent = official_absence.Agent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        def official_absence_agent_wrapper(input):
+            return self.official_absence_agent.run(input)
 
-def late_notification_agent(input): # 遅延届に関するAgentの呼び出し関数
-    return late_notification.run(message=input, verbose=verbose, memory=readonly_memory, chat_history=chat_history, llm=llm)
-
-def official_absence_agent(input): # 公欠届に関するAgentの呼び出し関数
-    return official_absence.run(message=input, verbose=verbose, memory=readonly_memory, chat_history=chat_history, llm=llm)
-
-
-
-
-class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入力スキーマ
-    user_utterance: str = Field(
-        description="This is the user's most recent utterance that is communicated to the person in charge of delay notification application")
-
-
-class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入力スキーマ
-    user_utterance: str = Field(
-        description="The user's most recent utterance that is communicated to the person in charge of application for official absence notification")
-
-
-
-
-
-tools = [ # ツールのリスト
-    Tool.from_function(
-        func=late_notification_agent,
-        name="late_notification",
-        # description="遅延届の申請に関する担当者です。遅延届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
-        description="This is the person in charge regarding the late notification application. This person should be the person in charge of handling conversations related to the late notification.",  # 英語ver
-        args_schema=LateNotificationAgentInput,
-        return_direct=True
-    ),
-    Tool.from_function(
-        func=official_absence_agent,
-        name="official_absence",
-        # description="公欠届の申請に関する担当者です。公欠届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
-        description="This is the person in charge regarding the application for the Notification of Public Absence. This person should be the person in charge of handling conversations related to the public absence notification.", # 英語ver
-        args_schema=OfficialAbsenceAgentInput,
-        return_direct=True
-    ),
-    Tool.from_function(
-        func=defalt_answer,
-        name="DEFAULT",
-        # description="特定の申請に関する情報がない場合はこの担当者に任せるべきです。", # 日本語ver
-        description="If you do not have information on a particular application, this person should be assigned to you.", # 英語ver
-        return_direct=True
-    ),
-]
+        class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入力スキーマ
+            user_utterance: str = Field(
+                description="This is the user's most recent utterance that is communicated to the person in charge of delay notification application")
 
 
+        class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入力スキーマ
+            user_utterance: str = Field(
+                description="The user's most recent utterance that is communicated to the person in charge of application for official absence notification")
+
+        self.tools = [ # ツールのリスト
+            Tool.from_function(
+                func=late_notification_agent_wrapper,
+                name="late_notification",
+                # description="遅延届の申請に関する担当者です。遅延届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
+                description="This is the person in charge regarding the late notification application. This person should be the person in charge of handling conversations related to the late notification.",  # 英語ver
+                args_schema=LateNotificationAgentInput,
+                return_direct=True
+            ),
+            Tool.from_function(
+                func=official_absence_agent_wrapper,
+                name="official_absence",
+                # description="公欠届の申請に関する担当者です。公欠届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
+                description="This is the person in charge regarding the application for the Notification of Public Absence. This person should be the person in charge of handling conversations related to the public absence notification.", # 英語ver
+                args_schema=OfficialAbsenceAgentInput,
+                return_direct=True
+            ),
+            Tool.from_function(
+                func=defalt_answer_wrapper,
+                name="DEFAULT",
+                # description="特定の申請に関する情報がない場合はこの担当者に任せるべきです。", # 日本語ver
+                description="If you do not have information on a particular application, this person should be assigned to you.", # 英語ver
+                return_direct=True
+            ),
+        ]
 
 
-
-
-
-def run(input, llm, memory, chat_history, verbose):
-    dispatcher_agent = DispatcherAgent( # ディスパッチャーエージェントの初期化
-        chat_model=llm, readonly_memory=readonly_memory, tools=tools, verbose=verbose)
-    agent = AgentExecutor.from_agent_and_tools(
-        agent=dispatcher_agent, tools=tools, memory=memory, verbose=verbose
-    )
-    return agent.run(input)
+    def run(self, input: str):
+        dispatcher_agent = DispatcherAgent( # ディスパッチャーエージェントの初期化
+            chat_model=self.llm, readonly_memory=self.memory, tools=self.tools, verbose=self.verbose)
+        agent = AgentExecutor.from_agent_and_tools(
+            agent=dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
+        )
+        return agent.run(input)
 
 
 # while(True):

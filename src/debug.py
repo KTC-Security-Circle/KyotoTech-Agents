@@ -4,12 +4,15 @@ import agents
 
 from agents.tools import (
     horoscope,
-    searchDB,
+    search,
     default,
 )
 
 # デバッグ先の指定
 run = agents.run
+
+# run = agents.test
+# print(run())
 
 while True:
     message = input(">> ")

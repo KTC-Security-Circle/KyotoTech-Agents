@@ -77,22 +77,28 @@ def search(
 
 search_tools = [search]
 
-# agent_kwargs = {
-#     "system_message": SystemMessagePromptTemplate.from_template(template=SEARCHDB_SYSTEM_PROMPT),
-#     "extra_prompt_messages": [g.chat_history]
-# }
-# search_database_agent = initialize_agent(
-#     search_tools,
-#     g.llm,
-#     agent=AgentType.OPENAI_FUNCTIONS,
-#     verbose=g.verbose,
-#     agent_kwargs=agent_kwargs,
-#     memory=g.readonly_memory
-# )
 
+class Agent:
+    def __init__(self, llm, memory, chat_history, verbose):
+        self.llm = llm
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
 
-# def run(input):
-#     return search_database_agent.run(input)
+    def run(self, input):
+        agent_kwargs = {
+            "system_message": SystemMessagePromptTemplate.from_template(template=SEARCHDB_SYSTEM_PROMPT),
+            "extra_prompt_messages": [self.chat_history]
+        }
+        search_database_agent = initialize_agent(
+            tools=search_tools,
+            llm=self.llm,
+            agent=AgentType.OPENAI_FUNCTIONS,
+            verbose=self.verbose,
+            agent_kwargs=agent_kwargs,
+            memory=self.memory
+        )
+        return search_database_agent.run(input)
 
 #debag
 # while True:

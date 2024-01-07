@@ -69,23 +69,29 @@ def horoscope(birthday: str): # 誕生日を入力すると、星占いをして
 
 horoscope_tools = [horoscope]
 
-# agent_kwargs = {
-#     "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
-#     "extra_prompt_messages": [g.chat_history]
-# }
-# horoscope_agent = initialize_agent(
-#     horoscope_tools,
-#     g.llm,
-#     agent=AgentType.OPENAI_FUNCTIONS,
-#     verbose=g.verbose,
-#     agent_kwargs=agent_kwargs,
-#     memory=g.readonly_memory
-# )
+class Agent:
+    def __init__(self, llm, memory, chat_history, verbose):
+        self.llm = llm
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
 
-# def run(input):
-#     return horoscope_agent.run(input)
+    def run(self, input):
+        agent_kwargs = {
+            "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
+            "extra_prompt_messages": [self.chat_history]
+        }
+        horoscope_agent = initialize_agent(
+            tools=horoscope_tools,
+            llm=self.llm,
+            agent=AgentType.OPENAI_FUNCTIONS,
+            verbose=self.verbose,
+            agent_kwargs=agent_kwargs,
+            memory=self.memory
+        )
+        return horoscope_agent.run(input)
 
-# debag
+# debag code
 # horoscope_agent.run("私の今日の運勢を教えて。")
 # horoscope_agent.run("私の誕生日は3月3日です。")
 # while True:

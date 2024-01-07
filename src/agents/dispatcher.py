@@ -1,7 +1,8 @@
 import os
 
+from langchain.chat_models import AzureChatOpenAI
 from langchain.chains.llm import LLMChain
-from langchain.memory import ReadOnlySharedMemory
+from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (
@@ -14,6 +15,25 @@ from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
 from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
+
+from agents.tools import (
+    horoscope,
+    search,
+    procedure,
+    default
+)
+
+
+# Azure OpenAIのAPIを読み込み。
+default_llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
+    openai_api_base=os.environ["OPENAI_API_BASE"],
+    openai_api_version=os.environ["OPENAI_API_VERSION"],
+    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
+    openai_api_key=os.environ["OPENAI_API_KEY"],
+    openai_api_type="azure",
+    temperature=0,
+    model_kwargs={"top_p": 0.1}
+)
 
 
 
@@ -56,17 +76,17 @@ Note: The output must always be one of the names listed as choices. However, if 
 '''
 
 
-class DestinationOutputParser(BaseOutputParser[str]):
+class DestinationOutputParser(BaseOutputParser[str]): # 出力パーサーを作成。
     destinations: Set[str]
 
-    class Config:
+    class Config: # 出力パーサーの設定。
         extra = Extra.allow
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs): # 出力パーサーの初期化。
         super().__init__(**kwargs)
         self.destinations_and_default = list(self.destinations) + ["DEFAULT"]
 
-    def parse(self, text: str) -> str:
+    def parse(self, text: str) -> str: # 
         matched = [int(d in text) for d in self.destinations_and_default]
         if sum(matched) != 1:
             raise OutputParserException(
@@ -146,62 +166,86 @@ class DispatcherAgent(BaseSingleActionAgent):
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
 
 
-class HoroscopeAgentInput(BaseModel):
-    user_utterance: str = Field(
-        description="This is the user's most recent utterance that is communicated to the astrologer.")
-
-# class PartsOrderAgentInput(BaseModel):
-#     user_utterance: str = Field(
-#         description="プラモデルの部品の個別注文の担当者に伝達するユーザーの直近の発話内容です。")
 
 
-class SearchDBAgentInput(BaseModel):
-    user_utterance: str = Field(
-        description="The user's most recent utterance that is communicated to the person in charge of the school database search.")
+class MainAgent:
+    '''メインエージェントのクラスです。'''
 
+    def __init__(self, llm, memory, chat_history, verbose):
+        self.llm = llm
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
+        
+        self.default_agent = default.Agent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        def default_agent_wrapper(user_message):
+            return self.default_agent.run(user_message)
+        self.horoscope_agent = horoscope.Agent(
+            llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        def horoscope_agent_wrapper(user_message):
+            return self.horoscope_agent.run(user_message)
+        self.search_database_agent = search.Agent(
+            llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        def search_database_agent_wrapper(user_message):
+            return self.search_database_agent.run(user_message)
+        self.procedure_agent = procedure.Agent(
+            llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        def procedure_agent_wrapper(user_message):
+            return self.procedure_agent.run(user_message)
 
-class DefaultAgentInput(BaseModel):
-    user_utterance: str = Field(
-        description="This is the user's most recent utterance that communicates general content to the person in charge.")
+        class HoroscopeAgentInput(BaseModel):
+            user_utterance: str = Field(
+                description="This is the user's most recent utterance that is communicated to the astrologer.")
 
+        class SearchDBAgentInput(BaseModel):
+            user_utterance: str = Field(
+                description="The user's most recent utterance that is communicated to the person in charge of the school database search.")
 
-# tools = [
-#     Tool.from_function(
-#         func=horoscope.run,
-#         name="horoscope",
-#         description="星占いの担当者です。星占いに関係する会話の対応はこの担当者に任せるべきです。",
-#         args_schema=HoroscopeAgentInput,
-#         return_direct=True
-#     ),
-#     # Tool.from_function(
-#     #     func=parts_order_agent,
-#     #     name="parts_order_agent",
-#     #     description="プラモデルの部品の個別注文の担当者です。プラモデルの部品注文やキャンセルに関係する会話の対応はこの担当者に任せるべきです。",
-#     #     args_schema=PartsOrderAgentInput,
-#     #     return_direct=True
-#     # ),
-#     Tool.from_function(
-#         func=search_database_agent.run,
-#         name="searchDB",
-#         description="学校データベース検索の担当者です。学校データベースの検索や学校情報に関係する会話の対応はこの担当者に任せるべきです。",
-#         args_schema=SearchDBAgentInput,
-#         return_direct=True
-#     ),
-#     Tool.from_function(
-#         func=default_agent.run,
-#         name="DEFAULT",
-#         description="一般的な会話の担当者です。一般的で特定の専門家に任せるべきでない会話の対応はこの担当者に任せるべきです。",
-#         args_schema=DefaultAgentInput,
-#         return_direct=True
-#     ),
-# ]
+        class ProcedureAgentInput(BaseModel):
+            user_utterance: str = Field(
+                description="This is the user's most recent utterance that is communicated to the person in charge of various procedures.")
 
-# dispatcher_agent = main.DispatcherAgent(
-#     chat_model=llm, readonly_memory=readonly_memory, tools=main.tools, verbose=verbose)
+        class DefaultAgentInput(BaseModel):
+            user_utterance: str = Field(
+                description="This is the user's most recent utterance that communicates general content to the person in charge.")
 
-# agent = AgentExecutor.from_agent_and_tools(
-#     agent=dispatcher_agent, tools=main.tools, memory=memory, verbose=verbose
-# )
+        self.tools = [
+            Tool.from_function(
+                func=horoscope_agent_wrapper,
+                name="horoscope",
+                description="This is the person in charge of astrology. This person should be in charge of handling conversations related to horoscopes.",
+                args_schema=HoroscopeAgentInput,
+                return_direct=True
+            ),
+            Tool.from_function(
+                func=search_database_agent_wrapper,
+                name="search_database",
+                description="This person is in charge of school database searches. This person should be responsible for searching the school database and handling conversations related to school information.",
+                args_schema=SearchDBAgentInput,
+                return_direct=True
+            ),
+            Tool.from_function(
+                func=procedure_agent_wrapper,
+                name="procedure",
+                description="This person is in charge of various procedures. This person should be responsible for handling conversations related to various procedures.",
+                args_schema=ProcedureAgentInput,
+                return_direct=True
+            ),
+            Tool.from_function(
+                func=default_agent_wrapper,
+                name="DEFAULT",
+                description="This is the person in charge of general conversations. This person should be assigned to handle conversations that are general and should not be left to a specific expert.",
+                args_schema=DefaultAgentInput,
+                return_direct=True
+            ),
+        ]
+    
+    
+    def run(self, user_message: str):
+        dispatcher_agent = DispatcherAgent(
+            chat_model=default_llm, readonly_memory=self.memory, tools=self.tools, verbose=self.verbose)
+        agent = AgentExecutor.from_agent_and_tools(
+            agent=dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
+        )
+        return agent.run(user_message)
 
-# def run(input: str):
-#     return agent.run(input)

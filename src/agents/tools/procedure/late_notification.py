@@ -258,32 +258,64 @@ late_notification_items_tools = [late_notification_items]
 #         "name": "late_notification_items"}}
 # )
 
+class Agent:
+    def __init__(self, llm, memory, chat_history, verbose):
+        self.late_notification_llm = AzureChatOpenAI(
+            openai_api_base=llm.openai_api_base,
+            openai_api_version=llm.openai_api_version,
+            deployment_name=llm.deployment_name,
+            openai_api_key=llm.openai_api_key,
+            openai_api_type=llm.openai_api_type,
+            temperature=llm.temperature,
+            model_kwargs={"top_p": 0.1, "function_call": {
+                "name": "late_notification_items"}}
+        )
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
+        
+        
 
-def run(message, verbose, memory, chat_history, llm):
-    late_notification_llm = AzureChatOpenAI(
-        openai_api_base=llm.openai_api_base,
-        openai_api_version=llm.openai_api_version,
-        deployment_name=llm.deployment_name,
-        openai_api_key=llm.openai_api_key,
-        openai_api_type=llm.openai_api_type,
-        temperature=llm.temperature,
-        model_kwargs={"top_p": 0.1, "function_call": {
-            "name": "late_notification_items"}}
-    )
-    agent_kwargs = {
-        "system_message": SystemMessagePromptTemplate.from_template(template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT),
-        "extra_prompt_messages": [chat_history]
-    }
-    late_notification_agent = initialize_agent(
-        tools=late_notification_items_tools,
-        llm=late_notification_llm,
-        agent=AgentType.OPENAI_FUNCTIONS,
-        verbose=verbose,
-        agent_kwargs=agent_kwargs,
-        memory=memory
-    )
-    ai_response = late_notification_agent.run(message)
-    return ai_response
+    def run(self, input):
+        agent_kwargs = {
+            "system_message": SystemMessagePromptTemplate.from_template(template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT),
+            "extra_prompt_messages": [self.chat_history]
+        }
+        late_notification_agent = initialize_agent(
+            tools=late_notification_items_tools,
+            llm=self.late_notification_llm,
+            agent=AgentType.OPENAI_FUNCTIONS,
+            verbose=self.verbose,
+            agent_kwargs=agent_kwargs,
+            memory=self.memory
+        )
+        return late_notification_agent.run(input)
+
+# def run(message, verbose, memory, chat_history, llm):
+#     late_notification_llm = AzureChatOpenAI(
+#         openai_api_base=llm.openai_api_base,
+#         openai_api_version=llm.openai_api_version,
+#         deployment_name=llm.deployment_name,
+#         openai_api_key=llm.openai_api_key,
+#         openai_api_type=llm.openai_api_type,
+#         temperature=llm.temperature,
+#         model_kwargs={"top_p": 0.1, "function_call": {
+#             "name": "late_notification_items"}}
+#     )
+#     agent_kwargs = {
+#         "system_message": SystemMessagePromptTemplate.from_template(template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT),
+#         "extra_prompt_messages": [chat_history]
+#     }
+#     late_notification_agent = initialize_agent(
+#         tools=late_notification_items_tools,
+#         llm=late_notification_llm,
+#         agent=AgentType.OPENAI_FUNCTIONS,
+#         verbose=verbose,
+#         agent_kwargs=agent_kwargs,
+#         memory=memory
+#     )
+#     ai_response = late_notification_agent.run(message)
+#     return ai_response
 
 # message = "公欠届を申請したいです。"
 # print(official_absence_agent.run(message))

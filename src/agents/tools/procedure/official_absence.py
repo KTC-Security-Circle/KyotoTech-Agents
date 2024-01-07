@@ -200,7 +200,7 @@ def application_items(
         f'\n'
         f'{order_template}'
         f'\n'
-        f'AIが誤っている場合は、「○○は○○です。」と変更を促してください。'
+        f'内容が誤っている場合は、「○○は○○です。」と変更を促してください。'
     )
 
     # 注文確認のテンプレート
@@ -261,32 +261,60 @@ application_items_tools = [application_items]
 # )
 
 
+class Agent:
+    def __init__(self, llm, memory, chat_history, verbose):
+        self.official_absence_llm = AzureChatOpenAI(
+            openai_api_base=llm.openai_api_base,
+            openai_api_version=llm.openai_api_version,
+            deployment_name=llm.deployment_name,
+            openai_api_key=llm.openai_api_key,
+            openai_api_type=llm.openai_api_type,
+            temperature=llm.temperature,
+            model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
+        )
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
 
+    def run(self, input):
+        agent_kwargs = {
+            "system_message": SystemMessagePromptTemplate.from_template(template=APPLICATION_ITEMS_SYSTEM_PROMPT),
+            "extra_prompt_messages": [self.chat_history]
+        }
+        application_items_agent = initialize_agent(
+            tools=application_items_tools,
+            llm=self.official_absence_llm,
+            agent=AgentType.OPENAI_FUNCTIONS,
+            verbose=self.verbose,
+            agent_kwargs=agent_kwargs,
+            memory=self.memory
+        )
+        return application_items_agent.run(input)
 
-def run(message, verbose, memory, chat_history, llm):
-    official_absence_llm = AzureChatOpenAI( 
-        openai_api_base=llm.openai_api_base,
-        openai_api_version=llm.openai_api_version,
-        deployment_name=llm.deployment_name,
-        openai_api_key=llm.openai_api_key,
-        openai_api_type=llm.openai_api_type,
-        temperature=llm.temperature,
-        model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
-    )
-    agent_kwargs = {
-        "system_message": SystemMessagePromptTemplate.from_template(template=APPLICATION_ITEMS_SYSTEM_PROMPT),
-        "extra_prompt_messages": [chat_history]
-    }
-    official_absence_agent = initialize_agent(
-        tools=application_items_tools,
-        llm=official_absence_llm,
-        agent=AgentType.OPENAI_FUNCTIONS,
-        verbose=verbose,
-        agent_kwargs=agent_kwargs,
-        memory=memory
-    )
-    ai_response = official_absence_agent.run(message)
-    return ai_response
+# def run(message, verbose, memory, chat_history, llm):
+#     official_absence_llm = AzureChatOpenAI( 
+#         openai_api_base=llm.openai_api_base,
+#         openai_api_version=llm.openai_api_version,
+#         deployment_name=llm.deployment_name,
+#         openai_api_key=llm.openai_api_key,
+#         openai_api_type=llm.openai_api_type,
+#         temperature=llm.temperature,
+#         model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
+#     )
+#     agent_kwargs = {
+#         "system_message": SystemMessagePromptTemplate.from_template(template=APPLICATION_ITEMS_SYSTEM_PROMPT),
+#         "extra_prompt_messages": [chat_history]
+#     }
+#     official_absence_agent = initialize_agent(
+#         tools=application_items_tools,
+#         llm=official_absence_llm,
+#         agent=AgentType.OPENAI_FUNCTIONS,
+#         verbose=verbose,
+#         agent_kwargs=agent_kwargs,
+#         memory=memory
+#     )
+#     ai_response = official_absence_agent.run(message)
+#     return ai_response
 
 
 # message = "公欠届を申請したいです。"

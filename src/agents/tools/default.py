@@ -44,22 +44,43 @@ def ask_can_do():  # ユーザーにあなたができることを教える関�
 
 default_tools = [ask_can_do]
 
-# agent_kwargs = {
-#     "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
-#     "extra_prompt_messages": [g.chat_history]
-# }
-# default_agent = initialize_agent(
-#     default_tools,
-#     g.llm,
-#     agent=AgentType.OPENAI_FUNCTIONS,
-#     verbose=g.verbose,
-#     agent_kwargs=agent_kwargs,
-#     memory=g.readonly_memory
-# )
+class Agent:
 
+    def __init__(self, llm, memory, chat_history, verbose):
+        self.llm = llm
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
+        
+    def run(self, input):
+        agent_kwargs = {
+            "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
+            "extra_prompt_messages": [self.chat_history]
+        }
+        default_agent = initialize_agent(
+            tools=default_tools,
+            llm=self.llm,
+            agent=AgentType.OPENAI_FUNCTIONS,
+            verbose=self.verbose,
+            agent_kwargs=agent_kwargs,
+            memory=self.memory
+        )
+        return default_agent.run(input)
 
-# def run(input):
+# def run(input, llm, memory, chat_history, verbose):
+#     agent_kwargs = {
+#         "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
+#         "extra_prompt_messages": [chat_history]
+#     }
+#     default_agent = initialize_agent(
+#         tools=default_tools,
+#         llm=llm,
+#         agent=AgentType.OPENAI_FUNCTIONS,
+#         verbose=verbose,
+#         agent_kwargs=agent_kwargs,
+#         memory=memory
+#     )
 #     return default_agent.run(input)
 
 # debag
-# print(run("あなたについて教えて"))
+# print(Agent.run("あなたについて教えて"))
