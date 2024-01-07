@@ -16,7 +16,7 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 
-from agents.dispatcher import MainAgent
+from agents.dispatcher import Agent
 
 
 # デバッグモードを有効
@@ -35,34 +35,40 @@ default_llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
 )
 
 # 会話メモリの定義
-memory = ConversationBufferMemory(
+default_memory = ConversationBufferMemory(
     memory_key="chat_history", return_messages=True)
-readonly_memory = ReadOnlySharedMemory(memory=memory)
-chat_history = MessagesPlaceholder(variable_name='chat_history')
+default_chat_history = MessagesPlaceholder(variable_name='chat_history')
 
-
-
-def run(user_message: str):
-    try:
-        main_agent = MainAgent(
-            llm=default_llm,
-            memory=readonly_memory,
-            chat_history=chat_history,
-            verbose=verbose
+class MainAgent:
+    llm: AzureChatOpenAI
+    memory: ConversationBufferMemory
+    chat_history: MessagesPlaceholder
+    verbose: bool
+    
+    def __init__(
+        self, 
+        llm: AzureChatOpenAI = default_llm,
+        memory: ConversationBufferMemory = default_memory,
+        chat_history: MessagesPlaceholder = default_chat_history,
+        verbose: bool = False,
+        ):
+        self.llm = llm
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
+        
+        self.readonly_memory = ReadOnlySharedMemory(memory=self.memory)
+        langchain.debug = self.verbose
+        
+        
+        
+    def run(self, input):
+        main_agent = Agent(
+            llm=self.llm,
+            memory=self.memory,
+            readonly_memory=self.readonly_memory,
+            chat_history=self.chat_history,
+            verbose=self.verbose
         )
-        output = main_agent.run(user_message)
-        return output
-    except Exception as e:
-        print("err : " + str(e))
-        err_msg = f"エラーが発生しました。時間をおいて再度お試しください。"
-        return err_msg
+        return main_agent.run(input)
 
-def test():
-    message = "こんにちは"
-    main_agent = MainAgent(
-        llm=default_llm,
-        memory=readonly_memory,
-        chat_history=chat_history,
-        verbose=verbose
-    )
-    print(main_agent.run(message))

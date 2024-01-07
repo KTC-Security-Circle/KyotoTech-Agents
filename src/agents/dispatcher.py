@@ -168,28 +168,30 @@ class DispatcherAgent(BaseSingleActionAgent):
 
 
 
-class MainAgent:
+class Agent:
     '''メインエージェントのクラスです。'''
 
-    def __init__(self, llm, memory, chat_history, verbose):
+    def __init__(self, llm, memory, readonly_memory, chat_history, verbose):
         self.llm = llm
         self.memory = memory
+        self.readonly_memory = readonly_memory
         self.chat_history = chat_history
         self.verbose = verbose
         
-        self.default_agent = default.Agent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        self.default_agent = default.Agent(
+            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def default_agent_wrapper(user_message):
             return self.default_agent.run(user_message)
         self.horoscope_agent = horoscope.Agent(
-            llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def horoscope_agent_wrapper(user_message):
             return self.horoscope_agent.run(user_message)
         self.search_database_agent = search.Agent(
-            llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def search_database_agent_wrapper(user_message):
             return self.search_database_agent.run(user_message)
         self.procedure_agent = procedure.Agent(
-            llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def procedure_agent_wrapper(user_message):
             return self.procedure_agent.run(user_message)
 
@@ -243,7 +245,7 @@ class MainAgent:
     
     def run(self, user_message: str):
         dispatcher_agent = DispatcherAgent(
-            chat_model=default_llm, readonly_memory=self.memory, tools=self.tools, verbose=self.verbose)
+            chat_model=default_llm, readonly_memory=self.readonly_memory, tools=self.tools, verbose=self.verbose)
         agent = AgentExecutor.from_agent_and_tools(
             agent=dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
         )

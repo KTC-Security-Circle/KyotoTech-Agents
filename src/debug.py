@@ -8,8 +8,10 @@ from agents.tools import (
     default,
 )
 
+
 # デバッグ先の指定
-run = agents.run
+agent = agents.MainAgent(verbose=True)
+run = agent.run
 
 # run = agents.test
 # print(run())
@@ -21,8 +23,8 @@ while True:
         input_message = input(">> ")
         if input_message == "Y" or input_message == "y" or input_message == "yes" or input_message == "Yes":
             try:
-                buffer = agents.MainAgent.memory.load_memory_variables({})
-                with open("chat_history.txt", mode="w") as f:
+                buffer = agent.memory.load_memory_variables({})
+                with open("chat_history.txt", mode="w", encoding='utf-8') as f:
                     f.write(f'{buffer["chat_history"]}')
                     print("会話履歴を保存しました。")
             except Exception as e:
