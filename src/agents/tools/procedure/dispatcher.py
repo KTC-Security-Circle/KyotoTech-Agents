@@ -1,6 +1,3 @@
-import os
-
-import langchain
 from langchain.chains.llm import LLMChain
 from langchain.memory import ReadOnlySharedMemory
 from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor
@@ -15,25 +12,10 @@ from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
 from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
-from langchain.chat_models import AzureChatOpenAI
-from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
+from langchain.memory import ReadOnlySharedMemory
 
-from agents.tools.procedure import(
-    late_notification,
-    official_absence
-)
+from agents.tools import procedure
 
-
-# Azure OpenAIのAPIを読み込み。
-default_llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
-    openai_api_base=os.environ["OPENAI_API_BASE"],
-    openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-    openai_api_key=os.environ["OPENAI_API_KEY"],
-    openai_api_type="azure",
-    temperature=0,
-    model_kwargs={"top_p": 0.1}
-)
 
 
 # プロンプトの定義
@@ -186,13 +168,13 @@ class DispatcherAgent(BaseSingleActionAgent):
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
 
 
+class ProcedureAgentInput(BaseModel):
+    user_utterance: str = Field(
+        description="This is the user's most recent utterance that is communicated to the person in charge of various procedures.")
+
+
 class ProcedureAgent:
-    llm: AzureChatOpenAI = default_llm
-    memory: List[str] = []
-    chat_history: List[str] = []
-    verbose: bool = False
-    '''各種申請エージェントのクラスです。'''
-    
+
     def __init__(self, llm, memory, chat_history, verbose):
         self.llm = llm
         self.memory = memory
@@ -207,21 +189,15 @@ class ProcedureAgent:
         )
         def defalt_answer_wrapper(input):
             return self.defalt_answer()
-        self.late_notification_agent = late_notification.Agent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        self.late_notification_agent = procedure.LateNotificationAgent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
         def late_notification_agent_wrapper(input):
             return self.late_notification_agent.run(input)
-        self.official_absence_agent = official_absence.Agent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+        self.official_absence_agent = procedure.OfficialAbsenceAgent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
         def official_absence_agent_wrapper(input):
             return self.official_absence_agent.run(input)
 
-        class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入力スキーマ
-            user_utterance: str = Field(
-                description="This is the user's most recent utterance that is communicated to the person in charge of delay notification application")
 
 
-        class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入力スキーマ
-            user_utterance: str = Field(
-                description="The user's most recent utterance that is communicated to the person in charge of application for official absence notification")
 
         self.tools = [ # ツールのリスト
             Tool.from_function(
@@ -229,7 +205,7 @@ class ProcedureAgent:
                 name="late_notification",
                 # description="遅延届の申請に関する担当者です。遅延届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
                 description="This is the person in charge regarding the late notification application. This person should be the person in charge of handling conversations related to the late notification.",  # 英語ver
-                args_schema=LateNotificationAgentInput,
+                args_schema=procedure.LateNotificationAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
@@ -237,7 +213,7 @@ class ProcedureAgent:
                 name="official_absence",
                 # description="公欠届の申請に関する担当者です。公欠届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
                 description="This is the person in charge regarding the application for the Notification of Public Absence. This person should be the person in charge of handling conversations related to the public absence notification.", # 英語ver
-                args_schema=OfficialAbsenceAgentInput,
+                args_schema=procedure.OfficialAbsenceAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
@@ -251,12 +227,12 @@ class ProcedureAgent:
 
 
     def run(self, input: str):
-        dispatcher_agent = DispatcherAgent( # ディスパッチャーエージェントの初期化
+        self.dispatcher_agent = DispatcherAgent( # ディスパッチャーエージェントの初期化
             chat_model=self.llm, readonly_memory=self.memory, tools=self.tools, verbose=self.verbose)
-        agent = AgentExecutor.from_agent_and_tools(
-            agent=dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
+        self.agent = AgentExecutor.from_agent_and_tools(
+            agent=self.dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
         )
-        return agent.run(input)
+        return self.agent.run(input)
 
 
 # while(True):

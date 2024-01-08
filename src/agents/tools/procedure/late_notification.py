@@ -1,20 +1,13 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
-from langchain.memory import ConversationBufferMemory
 from langchain.chat_models import AzureChatOpenAI
 from langchain.agents import AgentType, initialize_agent
-import langchain
-from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate
+
+from langchain.prompts.chat import SystemMessagePromptTemplate
 from langchain.tools import tool
 import json
 import datetime
 from pydantic.v1 import BaseModel, Field
-
-verbose = True
-langchain.debug = verbose
-
 
 
 # システムプロンプトの設定
@@ -247,18 +240,12 @@ late_notification_items_tools = [late_notification_items]
 
 
 
-# モデルの初期化
-# llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
-#     openai_api_base=os.environ["OPENAI_API_BASE"],
-#     openai_api_version=os.environ["OPENAI_API_VERSION"],
-#     deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-#     openai_api_key=os.environ["OPENAI_API_KEY"],
-#     openai_api_type="azure",
-#     model_kwargs={"top_p": 0.1, "function_call": {
-#         "name": "late_notification_items"}}
-# )
+class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入力スキーマ
+    user_utterance: str = Field(
+        description="This is the user's most recent utterance that is communicated to the person in charge of delay notification application")
 
-class Agent:
+
+class LateNotificationAgent:
     def __init__(self, llm, memory, chat_history, verbose):
         self.late_notification_llm = AzureChatOpenAI(
             openai_api_base=llm.openai_api_base,
@@ -277,19 +264,19 @@ class Agent:
         
 
     def run(self, input):
-        agent_kwargs = {
+        self.agent_kwargs = {
             "system_message": SystemMessagePromptTemplate.from_template(template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT),
             "extra_prompt_messages": [self.chat_history]
         }
-        late_notification_agent = initialize_agent(
+        self.late_notification_agent = initialize_agent(
             tools=late_notification_items_tools,
             llm=self.late_notification_llm,
             agent=AgentType.OPENAI_FUNCTIONS,
             verbose=self.verbose,
-            agent_kwargs=agent_kwargs,
+            agent_kwargs=self.agent_kwargs,
             memory=self.memory
         )
-        return late_notification_agent.run(input)
+        return self.late_notification_agent.run(input)
 
 # def run(message, verbose, memory, chat_history, llm):
 #     late_notification_llm = AzureChatOpenAI(

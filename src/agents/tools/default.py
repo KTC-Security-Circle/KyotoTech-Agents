@@ -1,9 +1,7 @@
-import os
-
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain.prompts.chat import SystemMessagePromptTemplate
-
 from langchain.tools import tool
+from pydantic.v1 import BaseModel, Field
 
 
 # プロンプトの設定
@@ -44,7 +42,12 @@ def ask_can_do():  # ユーザーにあなたができることを教える関�
 
 default_tools = [ask_can_do]
 
-class Agent:
+class DefaultAgentInput(BaseModel): # デフォルトエージェントの入力の定義
+    user_utterance: str = Field(
+        description="This is the user's most recent utterance that communicates general content to the person in charge.")
+
+
+class DefaultAgent:
 
     def __init__(self, llm, memory, chat_history, verbose):
         self.llm = llm
@@ -53,19 +56,19 @@ class Agent:
         self.verbose = verbose
         
     def run(self, input):
-        agent_kwargs = {
+        self.agent_kwargs = {
             "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
             "extra_prompt_messages": [self.chat_history]
         }
-        default_agent = initialize_agent(
+        self.default_agent = initialize_agent(
             tools=default_tools,
             llm=self.llm,
             agent=AgentType.OPENAI_FUNCTIONS,
             verbose=self.verbose,
-            agent_kwargs=agent_kwargs,
+            agent_kwargs=self.agent_kwargs,
             memory=self.memory
         )
-        return default_agent.run(input)
+        return self.default_agent.run(input)
 
 # def run(input, llm, memory, chat_history, verbose):
 #     agent_kwargs = {

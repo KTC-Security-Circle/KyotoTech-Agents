@@ -1,5 +1,3 @@
-import os
-
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain.prompts.chat import SystemMessagePromptTemplate
 import json
@@ -69,7 +67,13 @@ def horoscope(birthday: str): # 誕生日を入力すると、星占いをして
 
 horoscope_tools = [horoscope]
 
-class Agent:
+
+class HoroscopeAgentInput(BaseModel):
+    user_utterance: str = Field(
+        description="This is the user's most recent utterance that is communicated to the astrologer.")
+
+
+class HoroscopeAgent:
     def __init__(self, llm, memory, chat_history, verbose):
         self.llm = llm
         self.memory = memory
@@ -77,19 +81,19 @@ class Agent:
         self.verbose = verbose
 
     def run(self, input):
-        agent_kwargs = {
+        self.agent_kwargs = {
             "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
             "extra_prompt_messages": [self.chat_history]
         }
-        horoscope_agent = initialize_agent(
+        self.horoscope_agent = initialize_agent(
             tools=horoscope_tools,
             llm=self.llm,
             agent=AgentType.OPENAI_FUNCTIONS,
             verbose=self.verbose,
-            agent_kwargs=agent_kwargs,
+            agent_kwargs=self.agent_kwargs,
             memory=self.memory
         )
-        return horoscope_agent.run(input)
+        return self.horoscope_agent.run(input)
 
 # debag code
 # horoscope_agent.run("私の今日の運勢を教えて。")

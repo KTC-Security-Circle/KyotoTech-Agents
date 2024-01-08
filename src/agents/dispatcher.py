@@ -2,7 +2,7 @@ import os
 
 from langchain.chat_models import AzureChatOpenAI
 from langchain.chains.llm import LLMChain
-from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
+from langchain.memory import ReadOnlySharedMemory
 from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (
@@ -13,19 +13,14 @@ from langchain.schema import (
 )
 from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-from pydantic.v1 import Extra, BaseModel, Field
+from pydantic.v1 import Extra
 from typing import Any, List, Tuple, Set, Union
 
-from agents.tools import (
-    horoscope,
-    search,
-    procedure,
-    default
-)
+from agents import tools
 
 
-# Azure OpenAIのAPIを読み込み。
-default_llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
+# デフォルトのLLMの定義
+default_llm = AzureChatOpenAI( 
     openai_api_base=os.environ["OPENAI_API_BASE"],
     openai_api_version=os.environ["OPENAI_API_VERSION"],
     deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
@@ -35,8 +30,8 @@ default_llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
     model_kwargs={"top_p": 0.1}
 )
 
-
-
+# プロンプトテンプレートの定義
+# 日本語ver
 # ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
 # 以下の選択候補からその説明を参考にしてユーザーの対応を任せるのに最も適した候補を選び、その名前を回答することです。
 # あなたが直接ユーザーへ回答してはいけません。あなたは対応を任せる候補を選ぶだけです。
@@ -54,6 +49,8 @@ default_llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
 # 「あなたについて教えて下さい。」と言われても返事をしてはいけません。
 # 選択候補に適切な候補がないケースですから"DEFAULT"と答えて下さい。
 # '''
+
+# 英語ver
 ROUTER_TEMPLATE = '''Your job is to read the conversation between the user and yourself, and based on the descriptions provided below, select the most suitable candidate to handle the user's response.
 You should not directly answer the user; your role is solely to choose the appropriate candidate.
 
@@ -76,25 +73,30 @@ Note: The output must always be one of the names listed as choices. However, if 
 '''
 
 
-class DestinationOutputParser(BaseOutputParser[str]): # 出力パーサーを作成。
-    destinations: Set[str]
 
-    class Config: # 出力パーサーの設定。
-        extra = Extra.allow
+# BaseOutputParserをもとにしたDestinationOutputParserクラスの定義
+# このクラスでは、ディスパッチャーエージェントの出力を解析し、適切なツールを選択します。
+# もし、ディスパッチャーエージェントの出力が適切なツールを選択できていない場合は、エラーを返します。
+class DestinationOutputParser(BaseOutputParser[str]):  
+    destinations: Set[str] # 解析対象のツールの名前を指定します。
 
-    def __init__(self, **kwargs): # 出力パーサーの初期化。
-        super().__init__(**kwargs)
-        self.destinations_and_default = list(self.destinations) + ["DEFAULT"]
+    class Config:  # 内部クラスConfigを定義します。このクラスはPydanticモデルの設定を制御します。
+        extra = Extra.allow # extraをallowに設定することで、このクラスに未定義のフィールドが存在してもエラーを返さないようにします。
 
-    def parse(self, text: str) -> str: # 
-        matched = [int(d in text) for d in self.destinations_and_default]
-        if sum(matched) != 1:
+    def __init__(self, **kwargs): # コンストラクタを定義します。
+        super().__init__(**kwargs) # 親クラスのコンストラクタを呼び出します。
+        self.destinations_and_default = list(self.destinations) + ["DEFAULT"] # 解析対象のツールの名前とデフォルトの名前をリストに格納します。
+
+    def parse(self, text: str) -> str: # 与えられたtextを解析し、適切なツールを選択します。
+        matched = [int(d in text) for d in self.destinations_and_default] # 解析対象のツールの名前とデフォルトの名前がtextに含まれているかどうかを判定します。(含まれていれば1, 含まれていなければ0)
+        if sum(matched) != 1:  # textがdestinations_and_defaultの要素と一致しないか、2つ以上の要素と一致する場合はエラーを返します。
             raise OutputParserException(
                 f"DestinationOutputParser expected output value includes "
                 f"one(and only one) of {self.destinations_and_default}. "
                 f"Received {text}."
             )
 
+        # matchedの中で1のインデックスを取得し、そのインデックスに対応するdestinations_and_defaultの要素を返します。
         return self.destinations_and_default[matched.index(1)]
 
     @property
@@ -102,6 +104,8 @@ class DestinationOutputParser(BaseOutputParser[str]): # 出力パーサーを作
         return "destination_output_parser"
 
 
+# ディスパッチャーエージェントの定義
+# このエージェントは、複数のエージェントを統括し、ユーザーからの入力に対して適切なエージェントを選択して実行します。
 class DispatcherAgent(BaseSingleActionAgent):
 
     chat_model: BaseChatModel
@@ -169,7 +173,10 @@ class DispatcherAgent(BaseSingleActionAgent):
 
 
 class Agent:
-    '''メインエージェントのクラスです。'''
+    '''
+    メインのディスパッチャーエージェントの実行クラスです。
+    このエージェントは、複数のエージェントを統括し、ユーザーからの入力に対して適切なエージェントを選択して実行します。
+    '''
 
     def __init__(self, llm, memory, readonly_memory, chat_history, verbose):
         self.llm = llm
@@ -178,74 +185,77 @@ class Agent:
         self.chat_history = chat_history
         self.verbose = verbose
         
-        self.default_agent = default.Agent(
+        
+        # デフォルトエージェントの定義
+        self.default_agent = tools.DefaultAgent( # デフォルトエージェントの初期化、ここでデフォルトエージェントの引数を設定する
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
-        def default_agent_wrapper(user_message):
+        def default_agent_wrapper(user_message): # デフォルトエージェントのラッパー関数の定義 これを使って定義したデフォルトエージェントを実行する
             return self.default_agent.run(user_message)
-        self.horoscope_agent = horoscope.Agent(
+        
+        
+        # 星占いエージェントの定義
+        self.horoscope_agent = tools.HoroscopeAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def horoscope_agent_wrapper(user_message):
             return self.horoscope_agent.run(user_message)
-        self.search_database_agent = search.Agent(
+
+        
+        # データベース検索エージェントの定義
+        self.search_database_agent = tools.SearchDBAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def search_database_agent_wrapper(user_message):
             return self.search_database_agent.run(user_message)
-        self.procedure_agent = procedure.Agent(
+
+        
+        # 各種申請エージェントの定義
+        self.procedure_agent = tools.ProcedureAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def procedure_agent_wrapper(user_message):
             return self.procedure_agent.run(user_message)
 
-        class HoroscopeAgentInput(BaseModel):
-            user_utterance: str = Field(
-                description="This is the user's most recent utterance that is communicated to the astrologer.")
 
-        class SearchDBAgentInput(BaseModel):
-            user_utterance: str = Field(
-                description="The user's most recent utterance that is communicated to the person in charge of the school database search.")
 
-        class ProcedureAgentInput(BaseModel):
-            user_utterance: str = Field(
-                description="This is the user's most recent utterance that is communicated to the person in charge of various procedures.")
-
-        class DefaultAgentInput(BaseModel):
-            user_utterance: str = Field(
-                description="This is the user's most recent utterance that communicates general content to the person in charge.")
-
+        # 使用ツールの定義
         self.tools = [
             Tool.from_function(
-                func=horoscope_agent_wrapper,
-                name="horoscope",
-                description="This is the person in charge of astrology. This person should be in charge of handling conversations related to horoscopes.",
-                args_schema=HoroscopeAgentInput,
-                return_direct=True
+                func=horoscope_agent_wrapper, # ラッパー関数を指定, ここで定義した関数が実行される
+                name="horoscope", # ツールの名前を指定, この名前がディスパッチャーエージェントの出力になる, この名前が出力された際にfuncで指定した関数が実行される
+                description="This is the person in charge of astrology. This person should be in charge of handling conversations related to horoscopes.", # ツールの説明を指定, この説明をもとにディスパッチャーエージェントはユーザーに対して適切なツールを選択する
+                args_schema=tools.HoroscopeAgentInput, # ツールの入力の定義を指定, この定義をもとにディスパッチャーエージェントはユーザーからの入力をツールに渡す
+                return_direct=True # ツールの出力を直接返すかどうかを指定, Trueの場合はツールの出力をそのまま返す, Falseの場合はツールの出力をディスパッチャーエージェントの入力として再度渡す
             ),
             Tool.from_function(
                 func=search_database_agent_wrapper,
                 name="search_database",
                 description="This person is in charge of school database searches. This person should be responsible for searching the school database and handling conversations related to school information.",
-                args_schema=SearchDBAgentInput,
+                args_schema=tools.SearchDBAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=procedure_agent_wrapper,
                 name="procedure",
                 description="This person is in charge of various procedures. This person should be responsible for handling conversations related to various procedures.",
-                args_schema=ProcedureAgentInput,
+                args_schema=tools.ProcedureAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=default_agent_wrapper,
                 name="DEFAULT",
                 description="This is the person in charge of general conversations. This person should be assigned to handle conversations that are general and should not be left to a specific expert.",
-                args_schema=DefaultAgentInput,
+                args_schema=tools.DefaultAgentInput,
                 return_direct=True
             ),
         ]
     
     
-    def run(self, user_message: str):
+    def run(self, user_message: str) -> str:
+        '''
+        定義したディスパッチャーエージェントを実行するメソッドです。
+        このメソッドは、ディスパッチャーエージェントを実行し、その出力を返します。
+        '''
+        # ディスパッチャーエージェントの初期化
         dispatcher_agent = DispatcherAgent(
-            chat_model=default_llm, readonly_memory=self.readonly_memory, tools=self.tools, verbose=self.verbose)
+            chat_model=self.llm, readonly_memory=self.readonly_memory, tools=self.tools, verbose=self.verbose)
         agent = AgentExecutor.from_agent_and_tools(
             agent=dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
         )

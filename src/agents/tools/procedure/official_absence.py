@@ -1,27 +1,17 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
-from langchain.memory import ConversationBufferMemory
 from langchain.chat_models import AzureChatOpenAI
 from langchain.agents import AgentType, initialize_agent
 import langchain
-from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate
+from langchain.prompts.chat import SystemMessagePromptTemplate
 from langchain.tools import tool
 import json
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-verbose = True
-langchain.debug = verbose
 
 
 
-# 以下は授業名が「python機械学習」で担当講師が「木本」の場合の first_period_class の設定例です。
-
-# ```
-# {class_name: "python機械学習", instructor_name: "木本"}
-# ```
 
 # システムプロンプトの設定
 # 日本語ver
@@ -250,18 +240,12 @@ def application_items(
 application_items_tools = [application_items]
 
 
-# モデルの初期化
-# llm = AzureChatOpenAI(  # Azure OpenAIのAPIを読み込み。
-#     openai_api_base=os.environ["OPENAI_API_BASE"],
-#     openai_api_version=os.environ["OPENAI_API_VERSION"],
-#     deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-#     openai_api_key=os.environ["OPENAI_API_KEY"],
-#     openai_api_type="azure",
-#     model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
-# )
+class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入力スキーマ
+    user_utterance: str = Field(
+        description="The user's most recent utterance that is communicated to the person in charge of application for official absence notification")
 
 
-class Agent:
+class OfficialAbsenceAgent:
     def __init__(self, llm, memory, chat_history, verbose):
         self.official_absence_llm = AzureChatOpenAI(
             openai_api_base=llm.openai_api_base,
