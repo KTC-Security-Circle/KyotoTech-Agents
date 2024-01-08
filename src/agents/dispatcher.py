@@ -190,28 +190,32 @@ class Agent:
         self.default_agent = tools.DefaultAgent( # デフォルトエージェントの初期化、ここでデフォルトエージェントの引数を設定する
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def default_agent_wrapper(user_message): # デフォルトエージェントのラッパー関数の定義 これを使って定義したデフォルトエージェントを実行する
-            return self.default_agent.run(user_message)
+            ai_message = self.default_agent.run(user_message) # デフォルトエージェントを実行し、その出力を変数に格納する
+            return ai_message
         
         
         # 星占いエージェントの定義
         self.horoscope_agent = tools.HoroscopeAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def horoscope_agent_wrapper(user_message):
-            return self.horoscope_agent.run(user_message)
+            ai_message = self.horoscope_agent.run(user_message)
+            return ai_message
 
         
         # データベース検索エージェントの定義
         self.search_database_agent = tools.SearchDBAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def search_database_agent_wrapper(user_message):
-            return self.search_database_agent.run(user_message)
+            ai_message = self.search_database_agent.run(user_message)
+            return ai_message
 
         
         # 各種申請エージェントの定義
         self.procedure_agent = tools.ProcedureAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def procedure_agent_wrapper(user_message):
-            return self.procedure_agent.run(user_message)
+            ai_message = self.procedure_agent.run(user_message)
+            return ai_message
 
 
 
