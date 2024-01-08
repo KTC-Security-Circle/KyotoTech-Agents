@@ -1,3 +1,3 @@
-from agents.tools.procedure.dispatcher import *
-from agents.tools.procedure.late_notification import *
-from agents.tools.procedure.official_absence import *
+from agents.tools.procedure.dispatcher import ProcedureAgent
+from agents.tools.procedure.late_notification import LateNotificationAgent
+from agents.tools.procedure.official_absence import OfficialAbsenceAgent
