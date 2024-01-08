@@ -192,7 +192,7 @@ class ProcedureAgent:
         self.chat_history = chat_history
         self.verbose = verbose
         
-        self.langchain.debug = self.verbose
+        langchain.debug = self.verbose
         
         self.defalt_answer = (
             f'私が行うことのできる各種申請は以下の通りです。\n'
@@ -241,7 +241,7 @@ class ProcedureAgent:
 
     def run(self, input: str):
         self.dispatcher_agent = DispatcherAgent( # ディスパッチャーエージェントの初期化
-            chat_model=self.llm, readonly_memory=self.memory, tools=self.tools, verbose=self.verbose)
+            chat_model=self.llm, readonly_memory=self.readonly_memory, tools=self.tools, verbose=self.verbose)
         self.agent = AgentExecutor.from_agent_and_tools(
             agent=self.dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
         )

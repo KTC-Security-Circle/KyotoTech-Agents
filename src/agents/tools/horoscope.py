@@ -89,7 +89,7 @@ class HoroscopeAgent:
         self.chat_history = chat_history
         self.verbose = verbose
         
-        self.langchain.debug = self.verbose
+        langchain.debug = self.verbose
 
     def run(self, input):
         self.agent_kwargs = {

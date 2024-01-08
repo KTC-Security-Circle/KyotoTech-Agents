@@ -270,7 +270,7 @@ class LateNotificationAgent:
         self.verbose = verbose
 
         # デバッグモードの設定
-        self.langchain.debug = self.verbose
+        langchain.debug = self.verbose
 
 
     def run(self, input):

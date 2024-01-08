@@ -61,7 +61,7 @@ class MainAgent:
         # メモリの読み取り専用化
         self.readonly_memory = ReadOnlySharedMemory(memory=self.memory)
         # デバッグモードの設定
-        self.langchain.debug = self.verbose
+        langchain.debug = self.verbose
 
     def run(self, user_message: str) -> str:
         """

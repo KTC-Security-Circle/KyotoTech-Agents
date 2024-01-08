@@ -262,14 +262,14 @@ class OfficialAbsenceAgent:
             openai_api_type=llm.openai_api_type,
             temperature=llm.temperature,
             model_kwargs={"top_p": 0.1, "function_call": {
-                "name": "late_notification_items"}}
+                "name": "application_items"}}
         )
         self.memory = memory
         self.chat_history = chat_history
         self.verbose = verbose
 
         # デバッグモードの設定
-        self.langchain.debug = self.verbose
+        langchain.debug = self.verbose
 
     def run(self, input):
         agent_kwargs = {
