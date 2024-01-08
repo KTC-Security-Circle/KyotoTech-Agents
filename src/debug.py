@@ -6,6 +6,7 @@ from agents import tools
 
 # デバッグ先の指定
 agent = agents.MainAgent(verbose=True)
+# agent = tools.DefaultAgent(verbose=True)
 run = agent.run
 
 # run = agents.test

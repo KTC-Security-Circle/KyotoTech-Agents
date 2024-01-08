@@ -2,7 +2,7 @@ import os
 
 from langchain.chat_models import AzureChatOpenAI
 from langchain.chains.llm import LLMChain
-from langchain.memory import ReadOnlySharedMemory
+from langchain.memory import ReadOnlySharedMemory, ConversationBufferMemory
 from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (
@@ -16,19 +16,12 @@ from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTempl
 from pydantic.v1 import Extra
 from typing import Any, List, Tuple, Set, Union
 
+from agents.template import default_value
 from agents import tools
 
 
-# デフォルトのLLMの定義
-default_llm = AzureChatOpenAI( 
-    openai_api_base=os.environ["OPENAI_API_BASE"],
-    openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-    openai_api_key=os.environ["OPENAI_API_KEY"],
-    openai_api_type="azure",
-    temperature=0,
-    model_kwargs={"top_p": 0.1}
-)
+
+
 
 # プロンプトテンプレートの定義
 # 日本語ver
@@ -178,7 +171,14 @@ class Agent:
     このエージェントは、複数のエージェントを統括し、ユーザーからの入力に対して適切なエージェントを選択して実行します。
     '''
 
-    def __init__(self, llm, memory, readonly_memory, chat_history, verbose):
+    def __init__(
+        self, 
+        llm: AzureChatOpenAI = default_value.default_llm, 
+        memory: ConversationBufferMemory = default_value.default_memory, 
+        readonly_memory: ReadOnlySharedMemory = default_value.default_readonly_memory, 
+        chat_history: MessagesPlaceholder = default_value.default_chat_history, 
+        verbose: bool = False,
+        ):
         self.llm = llm
         self.memory = memory
         self.readonly_memory = readonly_memory
@@ -212,7 +212,7 @@ class Agent:
         
         # 各種申請エージェントの定義
         self.procedure_agent = tools.ProcedureAgent(
-            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
+            llm=self.llm, memory=self.readonly_memory, readonly_memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def procedure_agent_wrapper(user_message):
             ai_message = self.procedure_agent.run(user_message)
             return ai_message

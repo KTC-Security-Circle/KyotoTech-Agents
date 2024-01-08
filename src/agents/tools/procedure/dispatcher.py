@@ -1,5 +1,7 @@
+import langchain
+from langchain.chat_models import AzureChatOpenAI
 from langchain.chains.llm import LLMChain
-from langchain.memory import ReadOnlySharedMemory
+from langchain.memory import ReadOnlySharedMemory, ConversationBufferMemory
 from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (
@@ -14,6 +16,7 @@ from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 from langchain.memory import ReadOnlySharedMemory
 
+from agents.template import default_value
 from agents.tools import procedure
 
 
@@ -175,11 +178,21 @@ class ProcedureAgentInput(BaseModel):
 
 class ProcedureAgent:
 
-    def __init__(self, llm, memory, chat_history, verbose):
+    def __init__(
+        self,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        readonly_memory: ReadOnlySharedMemory = default_value.default_readonly_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+        ):
         self.llm = llm
         self.memory = memory
+        self.readonly_memory = readonly_memory
         self.chat_history = chat_history
         self.verbose = verbose
+        
+        self.langchain.debug = self.verbose
         
         self.defalt_answer = (
             f'私が行うことのできる各種申請は以下の通りです。\n'

@@ -1,7 +1,12 @@
+import langchain
 from langchain.agents import AgentType, initialize_agent, tool
-from langchain.prompts.chat import SystemMessagePromptTemplate
+from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
 from langchain.tools import tool
+from langchain.chat_models import AzureChatOpenAI
+from langchain.memory import ConversationBufferMemory
 from pydantic.v1 import BaseModel, Field
+
+from agents.template import default_value
 
 
 # プロンプトの設定
@@ -49,11 +54,20 @@ class DefaultAgentInput(BaseModel): # デフォルトエージェントの入力
 
 class DefaultAgent:
 
-    def __init__(self, llm, memory, chat_history, verbose):
+    def __init__(
+        self,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+        ):
         self.llm = llm
         self.memory = memory
         self.chat_history = chat_history
         self.verbose = verbose
+        
+        # デバッグモードの設定
+        self.langchain.debug = self.verbose
         
     def run(self, input):
         self.agent_kwargs = {
@@ -70,20 +84,6 @@ class DefaultAgent:
         )
         return self.default_agent.run(input)
 
-# def run(input, llm, memory, chat_history, verbose):
-#     agent_kwargs = {
-#         "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
-#         "extra_prompt_messages": [chat_history]
-#     }
-#     default_agent = initialize_agent(
-#         tools=default_tools,
-#         llm=llm,
-#         agent=AgentType.OPENAI_FUNCTIONS,
-#         verbose=verbose,
-#         agent_kwargs=agent_kwargs,
-#         memory=memory
-#     )
-#     return default_agent.run(input)
 
 # debag
 # print(Agent.run("あなたについて教えて"))

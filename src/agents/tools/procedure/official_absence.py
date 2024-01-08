@@ -1,15 +1,16 @@
 import os
 
-from langchain.chat_models import AzureChatOpenAI
-from langchain.agents import AgentType, initialize_agent
 import langchain
-from langchain.prompts.chat import SystemMessagePromptTemplate
+from langchain.chat_models import AzureChatOpenAI
+from langchain.memory import ConversationBufferMemory
+from langchain.agents import AgentType, initialize_agent
+from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
 from langchain.tools import tool
 import json
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-
+from agents.template import default_value
 
 
 
@@ -246,7 +247,13 @@ class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入�
 
 
 class OfficialAbsenceAgent:
-    def __init__(self, llm, memory, chat_history, verbose):
+    def __init__(
+        self,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+    ):
         self.official_absence_llm = AzureChatOpenAI(
             openai_api_base=llm.openai_api_base,
             openai_api_version=llm.openai_api_version,
@@ -254,11 +261,15 @@ class OfficialAbsenceAgent:
             openai_api_key=llm.openai_api_key,
             openai_api_type=llm.openai_api_type,
             temperature=llm.temperature,
-            model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
+            model_kwargs={"top_p": 0.1, "function_call": {
+                "name": "late_notification_items"}}
         )
         self.memory = memory
         self.chat_history = chat_history
         self.verbose = verbose
+
+        # デバッグモードの設定
+        self.langchain.debug = self.verbose
 
     def run(self, input):
         agent_kwargs = {

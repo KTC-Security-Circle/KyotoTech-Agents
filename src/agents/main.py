@@ -6,23 +6,10 @@ from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 
 from agents.dispatcher import Agent
+from agents.template import default_value
 
 
-# デフォルトのLLMの定義
-default_llm = AzureChatOpenAI(
-    openai_api_base=os.environ["OPENAI_API_BASE"],
-    openai_api_version=os.environ["OPENAI_API_VERSION"],
-    deployment_name=os.environ["DEPLOYMENT_GPT35_NAME"],
-    openai_api_key=os.environ["OPENAI_API_KEY"],
-    openai_api_type="azure",
-    temperature=0,
-    model_kwargs={"top_p": 0.1}
-)
 
-# 会話メモリの定義
-default_memory = ConversationBufferMemory(
-    memory_key="chat_history", return_messages=True)
-default_chat_history = MessagesPlaceholder(variable_name='chat_history')
 
 
 class MainAgent:
@@ -39,9 +26,9 @@ class MainAgent:
 
     def __init__(
         self,
-        llm: AzureChatOpenAI = default_llm,
-        memory: ConversationBufferMemory = default_memory,
-        chat_history: MessagesPlaceholder = default_chat_history,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
         verbose: bool = False,
     ):
         """
@@ -74,7 +61,7 @@ class MainAgent:
         # メモリの読み取り専用化
         self.readonly_memory = ReadOnlySharedMemory(memory=self.memory)
         # デバッグモードの設定
-        langchain.debug = self.verbose
+        self.langchain.debug = self.verbose
 
     def run(self, user_message: str) -> str:
         """

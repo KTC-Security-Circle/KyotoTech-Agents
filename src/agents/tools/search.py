@@ -2,11 +2,16 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+import langchain
+from langchain.chat_models import AzureChatOpenAI
+from langchain.memory import ConversationBufferMemory
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain.retrievers import AzureCognitiveSearchRetriever
-from langchain.prompts.chat import SystemMessagePromptTemplate
+from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
 from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
+
+from agents.template import default_value
 
 
 # システムプロンプトの設定
@@ -85,11 +90,19 @@ class SearchDBAgentInput(BaseModel):
 
 
 class SearchDBAgent:
-    def __init__(self, llm, memory, chat_history, verbose):
+    def __init__(
+        self,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+    ):
         self.llm = llm
         self.memory = memory
         self.chat_history = chat_history
         self.verbose = verbose
+
+        self.langchain.debug = self.verbose
 
     def run(self, input):
         self.agent_kwargs = {

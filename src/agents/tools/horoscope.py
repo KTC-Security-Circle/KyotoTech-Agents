@@ -1,12 +1,15 @@
+import langchain
+from langchain.chat_models import AzureChatOpenAI
+from langchain.memory import ConversationBufferMemory
+from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate
 from langchain.agents import AgentType, initialize_agent, tool
-from langchain.prompts.chat import SystemMessagePromptTemplate
+from langchain.tools import tool
 import json
 import requests
 import datetime
-from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-
+from agents.template import default_value
 
 # システムプロンプトの設定
 # HOROSCOPE_SYSTEM_PROMPT = '''あなたは星占いの専門家です。
@@ -74,11 +77,19 @@ class HoroscopeAgentInput(BaseModel):
 
 
 class HoroscopeAgent:
-    def __init__(self, llm, memory, chat_history, verbose):
+    def __init__(
+        self,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+        ):
         self.llm = llm
         self.memory = memory
         self.chat_history = chat_history
         self.verbose = verbose
+        
+        self.langchain.debug = self.verbose
 
     def run(self, input):
         self.agent_kwargs = {

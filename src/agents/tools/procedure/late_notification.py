@@ -1,14 +1,16 @@
 import os
 
+import langchain
 from langchain.chat_models import AzureChatOpenAI
+from langchain.memory import ConversationBufferMemory
 from langchain.agents import AgentType, initialize_agent
-
-from langchain.prompts.chat import SystemMessagePromptTemplate
+from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
 from langchain.tools import tool
 import json
 import datetime
 from pydantic.v1 import BaseModel, Field
 
+from agents.template import default_value
 
 # システムプロンプトの設定
 # 日本語ver
@@ -246,7 +248,13 @@ class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入�
 
 
 class LateNotificationAgent:
-    def __init__(self, llm, memory, chat_history, verbose):
+    def __init__(
+        self,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+    ):
         self.late_notification_llm = AzureChatOpenAI(
             openai_api_base=llm.openai_api_base,
             openai_api_version=llm.openai_api_version,
@@ -260,8 +268,10 @@ class LateNotificationAgent:
         self.memory = memory
         self.chat_history = chat_history
         self.verbose = verbose
-        
-        
+
+        # デバッグモードの設定
+        self.langchain.debug = self.verbose
+
 
     def run(self, input):
         self.agent_kwargs = {
