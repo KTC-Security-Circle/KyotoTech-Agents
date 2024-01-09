@@ -1,5 +1,3 @@
-import os
-
 import langchain
 from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory

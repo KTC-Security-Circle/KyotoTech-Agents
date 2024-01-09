@@ -1,0 +1,14 @@
+{
+    "official_absence": {
+        "adsence_time": "20240109150420",
+        "date": "2023/12/21",
+        "application_class": [
+            {
+                "period_num": "3",
+                "class_name": "web基礎/FTP",
+                "instructor": ""
+            }
+        ],
+        "reason": "FTPのため"
+    }
+}
