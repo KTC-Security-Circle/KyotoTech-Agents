@@ -7,7 +7,7 @@ from agents import tools
 # デバッグ先の指定
 agent = agents.MainAgent(verbose=True)
 # agent = tools.ProcedureAgent(verbose=True)
-run = agent.run
+
 
 # run = agents.test
 # print(run())
@@ -28,7 +28,7 @@ while True:
         print("終了します。")
         break
     try:
-        ai_response = run(message)
+        ai_response = agent.run(message)
         print(f'AI : {ai_response}')
     except InvalidRequestError as error:
         message = error.response.json()["error"]["message"]

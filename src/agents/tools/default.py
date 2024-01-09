@@ -6,7 +6,7 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from pydantic.v1 import BaseModel, Field
 
-from agents.template import default_value
+from ..template import default_value
 
 
 # プロンプトの設定

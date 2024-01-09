@@ -10,7 +10,7 @@ import json
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-from agents.template import default_value
+from ...template import default_value
 
 # システムプロンプトの設定
 # 日本語ver

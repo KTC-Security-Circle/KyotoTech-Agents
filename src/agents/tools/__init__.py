@@ -1,4 +1,4 @@
-from agents.tools.default import DefaultAgent, DefaultAgentInput
-from agents.tools.search import SearchDBAgent, SearchDBAgentInput
-from agents.tools.horoscope import HoroscopeAgent, HoroscopeAgentInput
-from agents.tools.procedure import ProcedureAgent,  ProcedureAgentInput
+from .default import DefaultAgent, DefaultAgentInput
+from .search import SearchDBAgent, SearchDBAgentInput
+from .horoscope import HoroscopeAgent, HoroscopeAgentInput
+from .procedure import ProcedureAgent,  ProcedureAgentInput

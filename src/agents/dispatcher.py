@@ -14,8 +14,8 @@ from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTempl
 from pydantic.v1 import Extra
 from typing import Any, List, Tuple, Set, Union
 
-from agents.template import default_value
-from agents import tools
+from .template import default_value
+from . import tools
 
 
 

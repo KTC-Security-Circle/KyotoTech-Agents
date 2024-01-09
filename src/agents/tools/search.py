@@ -11,7 +11,7 @@ from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlacehol
 from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-from agents.template import default_value
+from ..template import default_value
 
 
 # システムプロンプトの設定

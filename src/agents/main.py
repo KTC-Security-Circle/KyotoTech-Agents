@@ -3,8 +3,8 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 
-from agents.dispatcher import Agent
-from agents.template import default_value
+from .dispatcher import Agent
+from .template import default_value
 
 
 

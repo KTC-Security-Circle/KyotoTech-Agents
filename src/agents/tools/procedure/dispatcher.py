@@ -16,8 +16,8 @@ from pydantic.v1 import Extra, BaseModel, Field
 from typing import Any, List, Tuple, Set, Union
 from langchain.memory import ReadOnlySharedMemory
 
-from agents.template import default_value
-from agents.tools import procedure
+from ...template import default_value
+from ...tools import procedure
 
 
 
