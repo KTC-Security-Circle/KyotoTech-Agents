@@ -1,11 +1,15 @@
 from openai import InvalidRequestError
+from langchain.memory import ConversationBufferMemory
 
 import agents
 from agents import tools
 
 
+memory = ConversationBufferMemory(memory_key="chat_history")
+memory.save_context({"input": "こんにちは"}, {"output": "なんのご用ですか？"})
+
 # デバッグ先の指定
-agent = agents.MainAgent(verbose=True)
+agent = agents.MainAgent(memory=memory, verbose=True)
 # agent = tools.ProcedureAgent(verbose=True)
 
 
