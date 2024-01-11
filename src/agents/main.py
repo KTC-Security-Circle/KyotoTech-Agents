@@ -1,5 +1,5 @@
 import langchain
-from langchain.chat_models import AzureChatOpenAI
+from langchain_community.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 

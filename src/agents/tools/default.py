@@ -2,7 +2,7 @@ import langchain
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
 from langchain.tools import tool
-from langchain.chat_models import AzureChatOpenAI
+from langchain_community.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from pydantic.v1 import BaseModel, Field
 

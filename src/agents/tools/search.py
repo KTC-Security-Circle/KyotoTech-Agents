@@ -6,7 +6,7 @@ import langchain
 from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import AgentType, initialize_agent, tool
-from langchain.retrievers import AzureCognitiveSearchRetriever
+from langchain_community.retrievers import AzureCognitiveSearchRetriever
 from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
 from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field

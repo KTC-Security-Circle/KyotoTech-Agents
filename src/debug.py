@@ -1,4 +1,3 @@
-from openai import InvalidRequestError
 from langchain.memory import ConversationBufferMemory
 
 import agents
@@ -35,10 +34,7 @@ while True:
     try:
         ai_response = agent.run(message)
         print(f'AI : {ai_response}')
-    except InvalidRequestError as error:
-        message = error.response.json()["error"]["message"]
-        print("Hit error: ", message)
-        break
     except Exception as e:
         print("err : " + str(e))
         break
+
