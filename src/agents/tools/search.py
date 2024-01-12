@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import langchain
-from langchain.chat_models import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain_community.retrievers import AzureCognitiveSearchRetriever

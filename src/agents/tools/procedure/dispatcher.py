@@ -1,5 +1,5 @@
 import langchain
-from langchain_community.chat_models import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain.chains.llm import LLMChain
 from langchain.memory import ReadOnlySharedMemory, ConversationBufferMemory
 from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor

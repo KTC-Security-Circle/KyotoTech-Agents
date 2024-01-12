@@ -2,10 +2,17 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from langchain_community.chat_models import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 from langchain_openai import AzureOpenAIEmbeddings
+# from langchain_openai import OpenAIEmbeddings
+from azure.search.documents.indexes.models import (
+    SearchableField,
+    SearchField,
+    SearchFieldDataType,
+    SimpleField,
+)
 
 
 
@@ -26,4 +33,12 @@ default_readonly_memory = ReadOnlySharedMemory(memory=default_memory)
 
 default_embeddings_model = AzureOpenAIEmbeddings(
     azure_deployment=os.environ["DEPLOYMENT_EMBEDDINGS_NAME"],
+    chunk_size=1
 )
+
+
+vector_store_address: str = os.environ["AZURE_SEARCH_ENDPOINT"]
+vector_store_password: str = os.environ["AZURE_SEARCH_KEY"]
+embeddings: AzureOpenAIEmbeddings = default_embeddings_model
+embedding_function = embeddings.embed_query
+
