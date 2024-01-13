@@ -21,7 +21,6 @@ load_dotenv()
 # --------------------
 # ユーザーから与えられたプロンプトから検索ワードを抽出し、 search_word という変数に格納してください。
 # 検索結果を元に回答を作成し、ユーザーに返答してください。
-# 最終回答は150字以下に要約して回答してください。
 # もし検索ワードに対する検索結果が不適当であれば、答えを作ろうとせず "わかりません。" と回答し、ユーザーに対して検索ワードを変更するように促してください。
 # --------------------
 
@@ -67,9 +66,8 @@ def search(
         search_result = []
         for doc in docs:
             if hasattr(doc, 'metadata'):
-                meta = doc.metadata
                 search_result.append(
-                    f'・検索結果{i}は以下の通りです。\n{meta.split_source}\n\n')
+                    f'・検索結果{i}は以下の通りです。\n{doc.metadata["split_source"]}\n\n')
                 i += 1
         return search_result
 

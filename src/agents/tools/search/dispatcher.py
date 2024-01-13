@@ -1,19 +1,9 @@
 import langchain
 from langchain_openai import AzureChatOpenAI
-from langchain.chains.llm import LLMChain
 from langchain.memory import ReadOnlySharedMemory, ConversationBufferMemory
-from langchain.agents import BaseSingleActionAgent,  Tool,  AgentExecutor
-from langchain.chat_models.base import BaseChatModel
-from langchain.schema import (
-    AgentAction,
-    AgentFinish,
-    BaseOutputParser,
-    OutputParserException
-)
-from langchain.prompts import PromptTemplate
-from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
-from pydantic.v1 import Extra, BaseModel, Field
-from typing import Any, List, Tuple, Set, Union
+from langchain.agents import  Tool,  AgentExecutor
+from langchain.prompts.chat import MessagesPlaceholder
+from pydantic.v1 import BaseModel, Field
 from langchain.memory import ReadOnlySharedMemory
 
 from ...template import default_value, agent_model
@@ -50,56 +40,56 @@ class SearchAgent:
             f'・学校データ\n'
             f'・奨学金データ\n'
             f'・授業データ\n'
-            f'○○を申請したいと言ってもらえれば、詳細を聞き申請をすることができます。'
+            f'○○について検索したいと言ってもらえれば、詳細を聞きお答えすることができます。'
         )
 
         def defalt_answer_wrapper(input):
-            return self.defalt_answer()
+            return self.defalt_answer
         
         self.school_agent = search.SchoolAgent(
             llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
         def school_agent_wrapper(input):
-            return self.late_notification_agent.run(input)
+            return self.school_agent.run(input)
         
         self.class_agent = search.ClassAgent(
             llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
         def class_agent_wrapper(input):
-            return self.official_absence_agent.run(input)
+            return self.class_agent.run(input)
         
         self.scholarship_agent = search.ScholarshipAgent(
             llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
         def scholarship_agent_wrapper(input):
-            return self.official_absence_agent.run(input)
+            return self.scholarship_agent.run(input)
 
         self.tools = [  # ツールのリスト
             Tool.from_function(
                 func=school_agent_wrapper,
                 name="school_agent",
-                # description="学校の概要について検索をする担当者です。学校の概要の検索に関係する会話の対応はこの担当者にまかせるべきです。", # 日本語ver
-                description="",  # 英語ver
+                # description="学校の概要について検索をする担当者です。学校や京都テックについての検索に関係する会話の対応はこの担当者にまかせるべきです。", # 日本語ver
+                description="This person is in charge of searching for information about the school. This person should be entrusted to handle conversations related to your search about the school and Kyoto Tech.",  # 英語ver
                 args_schema=search.SchoolAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=class_agent_wrapper,
                 name="class_agent",
-                # description="公欠届の申請に関する担当者です。公欠届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
-                description="This is the person in charge regarding the application for the Notification of Public Absence. This person should be the person in charge of handling conversations related to the public absence notification.",  # 英語ver
+                # description="授業のことに関する担当者です。授業についての質問や授業データの検索に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
+                description="This is the person in charge regarding class matters. This person should be the person to contact for questions about the class and for handling conversations related to the retrieval of class data.",  # 英語ver
                 args_schema=search.ClassAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=scholarship_agent_wrapper,
                 name="scholarship_agent",
-                # description="公欠届の申請に関する担当者です。公欠届に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
-                description="This is the person in charge regarding the application for the Notification of Public Absence. This person should be the person in charge of handling conversations related to the public absence notification.",  # 英語ver
+                # description="奨学金のことに関する担当者です。奨学金についての質問や奨学金データの検索に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
+                description="This is your contact person regarding scholarship matters. This person should be the one to handle any questions about the scholarship and any conversations related to the scholarship data search.",  # 英語ver
                 args_schema=search.ScholarshipAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=defalt_answer_wrapper,
                 name="DEFAULT",
-                # description="特定の申請に関する情報がない場合はこの担当者に任せるべきです。", # 日本語ver
+                # description="特定の検索に関する情報がない場合はこの担当者に任せるべきです。", # 日本語ver
                 description="If you do not have information on a particular application, this person should be assigned to you.",  # 英語ver
                 return_direct=True
             ),

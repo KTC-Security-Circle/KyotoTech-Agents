@@ -25,8 +25,8 @@ from langchain_community.document_loaders import PyPDFLoader
 
 
 # テーブル削除
-school_db.drop_table("class_data")
-school_db.drop_table("scholarship_data")
+# school_db.drop_table("class_data")
+# school_db.drop_table("scholarship_data")
 
 
 
@@ -38,4 +38,4 @@ school_db.drop_table("scholarship_data")
 # ベクターストア検索
 # res = vector.search_vector("vector-scholarship-data", "奨学金について")
 # for doc in res:
-#     print(doc.page_content, doc.metadata)
+#     print(doc.page_content, doc.metadata["split_source"])

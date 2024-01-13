@@ -5,7 +5,6 @@ from pydantic.v1 import BaseModel, Field
 
 from langchain.tools import tool
 from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
-from langchain_community.retrievers import AzureCognitiveSearchRetriever
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain.memory import ConversationBufferMemory
 from langchain_openai import AzureChatOpenAI
@@ -68,9 +67,8 @@ def search(
         search_result = []
         for doc in docs:
             if hasattr(doc, 'metadata'):
-                meta = doc.metadata
                 search_result.append(
-                    f'・検索結果{i}は以下の通りです。\n{meta.split_source}\n\n')
+                    f'・検索結果{i}は以下の通りです。\n{doc.metadata["split_source"]}\n\n')
                 i += 1
         return search_result
 

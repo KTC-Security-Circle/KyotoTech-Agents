@@ -201,7 +201,7 @@ class ProcedureAgent:
             f'○○を申請したいと言ってもらえれば、詳細を聞き申請をすることができます。'
         )
         def defalt_answer_wrapper(input):
-            return self.defalt_answer()
+            return self.defalt_answer
         self.late_notification_agent = procedure.LateNotificationAgent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
         def late_notification_agent_wrapper(input):
             return self.late_notification_agent.run(input)

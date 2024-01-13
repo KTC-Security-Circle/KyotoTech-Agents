@@ -4,12 +4,13 @@ import agents
 from agents import tools
 
 
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-memory.save_context({"input": "こんにちは、私の名前は遠藤です。"}, {
-                    "output": "こんにちは遠藤さん！なんのご用ですか？"})
+# memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+# memory.save_context({"input": "こんにちは、私の名前は遠藤です。"}, {
+#                     "output": "こんにちは遠藤さん！なんのご用ですか？"})
 
 # デバッグ先の指定
-agent = agents.MainAgent(memory=memory, verbose=True)
+# agent = agents.MainAgent(memory=memory, verbose=True)
+agent = agents.MainAgent(verbose=True)
 # agent = tools.ProcedureAgent(verbose=True)
 
 

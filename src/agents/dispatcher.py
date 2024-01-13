@@ -200,11 +200,11 @@ class Agent:
             return ai_message
 
         
-        # データベース検索エージェントの定義
-        self.search_database_agent = tools.SearchDBAgent(
+        # 検索エージェントの定義
+        self.search_agent = tools.SearchAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
-        def search_database_agent_wrapper(user_message):
-            ai_message = self.search_database_agent.run(user_message)
+        def search_agent_wrapper(user_message):
+            ai_message = self.search_agent.run(user_message)
             return ai_message
 
         
@@ -227,10 +227,10 @@ class Agent:
                 return_direct=True # ツールの出力を直接返すかどうかを指定, Trueの場合はツールの出力をそのまま返す, Falseの場合はツールの出力をディスパッチャーエージェントの入力として再度渡す
             ),
             Tool.from_function(
-                func=search_database_agent_wrapper,
-                name="search_database",
-                description="This person is in charge of school database searches. This person should be responsible for searching the school database and handling conversations related to school information.",
-                args_schema=tools.SearchDBAgentInput,
+                func=search_agent_wrapper,
+                name="search",
+                description="This person is in charge of database searches. This person should be responsible for responding to conversations related to searches, questions, and doubts.",
+                args_schema=tools.SearchAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
