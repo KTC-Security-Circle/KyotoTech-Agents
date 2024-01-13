@@ -85,7 +85,7 @@ def search_vector(index_name, search_word): # ベクトル検索関数
         index_name=index_name,
         embedding_function=default_value.embeddings.embed_query,
     )
-    res = vector_store.similarity_search(query=search_word, search_type="hybrid")
+    res = vector_store.similarity_search(query=search_word, search_type="hybrid", k=3)
     return res
 
 

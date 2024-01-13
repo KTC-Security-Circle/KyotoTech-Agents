@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
-import pyodbc
 from typing import List
+import pyodbc
 
 from .models import Document
 

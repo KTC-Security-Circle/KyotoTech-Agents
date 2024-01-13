@@ -25,8 +25,8 @@ from langchain_community.document_loaders import PyPDFLoader
 
 
 # テーブル削除
-# school_db.drop_table("class_data")
-# school_db.drop_table("scholarship_data")
+school_db.drop_table("class_data")
+school_db.drop_table("scholarship_data")
 
 
 

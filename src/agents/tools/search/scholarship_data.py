@@ -1,18 +1,18 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
-import langchain
-from langchain_openai import AzureChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.agents import AgentType, initialize_agent, tool
-from langchain_community.retrievers import AzureCognitiveSearchRetriever
-from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
-from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-from ..template import default_value
+from langchain.tools import tool
+from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
+from langchain_community.retrievers import AzureCognitiveSearchRetriever
+from langchain.agents import AgentType, initialize_agent, tool
+from langchain.memory import ConversationBufferMemory
+from langchain_openai import AzureChatOpenAI
+import langchain
 
+from ...template import default_value
+from ...db.vector import search_vector
 
 # システムプロンプトの設定
 # SEARCHDB_SYSTEM_PROMPT = '''あなたはデータベース検索AIです。
@@ -51,28 +51,26 @@ Then, conduct a search using the keyword 'Kyoto Tech,' create a response based o
 
 '''
 # エージェントの初期化
-class SearchInput(BaseModel) : # 検索ワードを入力するためのモデルを作成。
+
+
+class SearchInput(BaseModel):  # 検索ワードを入力するためのモデルを作成。
     search_word: str = Field(description="ユーザーからの入力から生成される検索ワードです。")
 
-@tool("search", args_schema=SearchInput) # Agentsツールを作成。
+
+@tool("search", args_schema=SearchInput)  # Agentsツールを作成。
 def search(
     search_word: str,
 ):
     """検索ワードから、検索結果を返答します。"""
     def search_database(search_word):
-        retriever = AzureCognitiveSearchRetriever(
-            service_name=os.environ["AZURE_COGNITIVE_SEARCH_SERVICE_NAME"],
-            index_name=os.environ["AZURE_COGNITIVE_SEARCH_INDEX_NAME"],
-            api_key=os.environ["AZURE_SEARCH_KEY"],
-            content_key="content",
-            top_k=3
-        )
-        res = retriever.get_relevant_documents(query=search_word)
+        docs = search_vector("vector-scholarship-data", search_word)
         i = 1
         search_result = []
-        for doc in res:
-            if hasattr(doc, 'page_content'):
-                search_result.append(f'・検索結果{i}は以下の通りです。\n{doc.page_content}\n\n')
+        for doc in docs:
+            if hasattr(doc, 'metadata'):
+                meta = doc.metadata
+                search_result.append(
+                    f'・検索結果{i}は以下の通りです。\n{meta.split_source}\n\n')
                 i += 1
         return search_result
 
@@ -83,13 +81,12 @@ def search(
 search_tools = [search]
 
 
-
-class SearchDBAgentInput(BaseModel):
+class ScholarshipAgentInput(BaseModel):
     user_utterance: str = Field(
         description="The user's most recent utterance that is communicated to the person in charge of the school database search.")
 
 
-class SearchDBAgent:
+class ScholarshipAgent:
     def __init__(
         self,
         llm: AzureChatOpenAI = default_value.default_llm,
@@ -109,7 +106,7 @@ class SearchDBAgent:
             "system_message": SystemMessagePromptTemplate.from_template(template=SEARCHDB_SYSTEM_PROMPT),
             "extra_prompt_messages": [self.chat_history]
         }
-        self.search_database_agent = initialize_agent(
+        self.search_agent = initialize_agent(
             tools=search_tools,
             llm=self.llm,
             agent=AgentType.OPENAI_FUNCTIONS,
@@ -117,9 +114,9 @@ class SearchDBAgent:
             agent_kwargs=self.agent_kwargs,
             memory=self.memory
         )
-        return self.search_database_agent.run(input)
+        return self.search_agent.run(input)
 
-#debag
+# debag
 # while True:
 #     message = input(">> ")
 #     if message == "exit" or message == ":q":
@@ -128,4 +125,3 @@ class SearchDBAgent:
 #         search_agent.run(message)
 #     except Exception as e:
 #         print(e)
-
