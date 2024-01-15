@@ -73,6 +73,7 @@ class MainAgent:
             CommandAgent = Command(
                 llm=self.llm,
                 memory=self.memory,
+                readonly_memory=self.readonly_memory,
                 chat_history=self.chat_history,
                 verbose=self.verbose
             )
