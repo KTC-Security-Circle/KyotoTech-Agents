@@ -3,6 +3,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 
+from .command import Command, check_command
 from .dispatcher import Agent
 from .template import default_value
 
@@ -66,8 +67,16 @@ class MainAgent:
         メインエージェントを実行するメソッドです。
         Agentクラスを生成し、指定された入力を渡して実行します。
         """
-        if user_message.startswith("/"):
-            pass
+
+        param = check_command(user_message)
+        if param.check_command_bool:
+            CommandAgent = Command(
+                llm=self.llm,
+                memory=self.memory,
+                chat_history=self.chat_history,
+                verbose=self.verbose
+            )
+            return CommandAgent.run(param.command, user_message)
         
         main_agent = Agent(
             llm=self.llm,

@@ -30,20 +30,25 @@ class Command:
         self.verbose = verbose
 
 
-    def run(self, command, user_message: str) -> str:
+    def run(self, command: str, user_message: str) -> str:
         if command == "help":
             return_text = """コマンド一覧
             ・/help : コマンド一覧を表示します。
             ・/search : 検索を行います。
             ・/procedure : 手続きを行います。
+            ・/horoscope : 星占いを行います。
             
             以上の中から選択し、”/コマンド名+半角スペース” で実行できます。
             """
             return return_text
         elif command == "search":
-            pass
+            agent = tools.SearchAgent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+            return agent.run(user_message)
         elif command == "procedure":
             agent = tools.ProcedureAgent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
+            return agent.run(user_message)
+        elif command == "horoscope":
+            agent = tools.HoroscopeAgent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
             return agent.run(user_message)
         else:
             return_text = """{{ command }} というコマンドは見つかりませんでした。
