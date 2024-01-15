@@ -202,7 +202,7 @@ class Agent:
         
         # 検索エージェントの定義
         self.search_agent = tools.SearchAgent(
-            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
+            llm=self.llm, memory=self.readonly_memory, readonly_memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         def search_agent_wrapper(user_message):
             ai_message = self.search_agent.run(user_message)
             return ai_message

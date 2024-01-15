@@ -66,6 +66,9 @@ class MainAgent:
         メインエージェントを実行するメソッドです。
         Agentクラスを生成し、指定された入力を渡して実行します。
         """
+        if user_message.startswith("/"):
+            pass
+        
         main_agent = Agent(
             llm=self.llm,
             memory=self.memory,
