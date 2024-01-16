@@ -1,6 +1,8 @@
+import langchain
 from langchain.chains.llm import LLMChain
-from langchain.memory import ReadOnlySharedMemory
-from langchain.agents import BaseSingleActionAgent,  Tool
+from langchain_openai import AzureChatOpenAI
+from langchain.memory import ReadOnlySharedMemory, ConversationBufferMemory
+from langchain.agents import BaseSingleActionAgent,  Tool, AgentType, initialize_agent
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (
     AgentAction,
@@ -12,7 +14,6 @@ from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
 from pydantic.v1 import Extra
 from typing import Any, List, Tuple, Set, Union
-from langchain.memory import ReadOnlySharedMemory
 
 
 
@@ -165,3 +166,42 @@ class DispatcherAgent(BaseSingleActionAgent):
             destination = "DEFAULT"
         # 選択されたツールと入力、および空のログを含む`AgentAction`オブジェクトを返します。
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
+
+
+class BaseToolAgent:
+    def __init__(self, llm: AzureChatOpenAI, memory: ConversationBufferMemory, chat_history: MessagesPlaceholder, verbose: bool, model_kwargs: dict = None):
+        self.llm = llm
+        if model_kwargs:
+            self.llm = AzureChatOpenAI(
+                openai_api_base=llm.openai_api_base,
+                openai_api_version=llm.openai_api_version,
+                deployment_name=llm.deployment_name,
+                openai_api_key=llm.openai_api_key,
+                openai_api_type=llm.openai_api_type,
+                temperature=llm.temperature,
+                model_kwargs=model_kwargs
+            )
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
+        langchain.debug = self.verbose
+
+    def run(self, input):
+        raise NotImplementedError(
+            "This method should be implemented by subclasses.")
+
+    def initialize_agent(self, agent_type: AgentType, tool_function, system_message_template):
+        
+        agent_kwargs = {
+            "system_message": SystemMessagePromptTemplate.from_template(template=system_message_template),
+            "extra_prompt_messages": [self.chat_history]
+        }
+        agent_function = initialize_agent(
+            tools=[tool_function],
+            llm=self.llm,
+            agent=agent_type,
+            verbose=self.verbose,
+            agent_kwargs=agent_kwargs,
+            memory=self.memory
+        )
+        return agent_function

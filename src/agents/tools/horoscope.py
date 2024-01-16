@@ -10,6 +10,7 @@ import datetime
 from pydantic.v1 import BaseModel, Field
 
 from ..template import default_value
+from ..template.agent_model import BaseToolAgent
 
 # システムプロンプトの設定
 # HOROSCOPE_SYSTEM_PROMPT = '''あなたは星占いの専門家です。
@@ -76,35 +77,51 @@ class HoroscopeAgentInput(BaseModel):
         description="This is the user's most recent utterance that is communicated to the astrologer.")
 
 
-class HoroscopeAgent:
-    def __init__(
-        self,
-        llm: AzureChatOpenAI = default_value.default_llm,
-        memory: ConversationBufferMemory = default_value.default_memory,
-        chat_history: MessagesPlaceholder = default_value.default_chat_history,
-        verbose: bool = False,
-        ):
-        self.llm = llm
-        self.memory = memory
-        self.chat_history = chat_history
-        self.verbose = verbose
+# class HoroscopeAgent:
+#     def __init__(
+#         self,
+#         llm: AzureChatOpenAI = default_value.default_llm,
+#         memory: ConversationBufferMemory = default_value.default_memory,
+#         chat_history: MessagesPlaceholder = default_value.default_chat_history,
+#         verbose: bool = False,
+#         ):
+#         self.llm = llm
+#         self.memory = memory
+#         self.chat_history = chat_history
+#         self.verbose = verbose
         
-        langchain.debug = self.verbose
+#         langchain.debug = self.verbose
+
+#     def run(self, input):
+#         self.agent_kwargs = {
+#             "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
+#             "extra_prompt_messages": [self.chat_history]
+#         }
+#         self.horoscope_agent = initialize_agent(
+#             tools=horoscope_tools,
+#             llm=self.llm,
+#             agent=AgentType.OPENAI_FUNCTIONS,
+#             verbose=self.verbose,
+#             agent_kwargs=self.agent_kwargs,
+#             memory=self.memory
+#         )
+#         return self.horoscope_agent.run(input)
+
+class HoroscopeAgent(BaseToolAgent):
+    def __init__(self, llm, memory, chat_history, verbose):
+        super().__init__(llm, memory, chat_history, verbose)
+        # HoroscopeAgent 特有の初期化（もしあれば）
 
     def run(self, input):
-        self.agent_kwargs = {
-            "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
-            "extra_prompt_messages": [self.chat_history]
-        }
-        self.horoscope_agent = initialize_agent(
-            tools=horoscope_tools,
-            llm=self.llm,
-            agent=AgentType.OPENAI_FUNCTIONS,
-            verbose=self.verbose,
-            agent_kwargs=self.agent_kwargs,
-            memory=self.memory
+        # HoroscopeAgent特有の処理
+        horoscope_agent = self.initialize_agent(
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+            tool_function=horoscope,  # 事前に定義されたhoroscope関数
+            system_message_template=HOROSCOPE_SYSTEM_PROMPT
         )
-        return self.horoscope_agent.run(input)
+        return horoscope_agent.run(input)
+
+
 
 # debag code
 # horoscope_agent.run("私の今日の運勢を教えて。")
