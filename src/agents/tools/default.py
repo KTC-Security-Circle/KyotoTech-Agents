@@ -1,12 +1,7 @@
-import langchain
-from langchain.agents import AgentType, initialize_agent, tool
-from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
-from langchain.tools import tool
-from langchain_openai import AzureChatOpenAI
-from langchain.memory import ConversationBufferMemory
+from langchain.agents import AgentType, tool
 from pydantic.v1 import BaseModel, Field
 
-from ..template import default_value
+from ..template.agent_model import BaseToolAgent
 
 
 # プロンプトの設定
@@ -52,38 +47,16 @@ class DefaultAgentInput(BaseModel): # デフォルトエージェントの入力
         description="This is the user's most recent utterance that communicates general content to the person in charge.")
 
 
-class DefaultAgent:
+class DefaultAgent(BaseToolAgent):
+    def __init__(self, llm, memory, chat_history, verbose):
+        super().__init__(llm, memory, chat_history, verbose)
+        # DefaultAgent 特有の初期化（もしあれば）
 
-    def __init__(
-        self,
-        llm: AzureChatOpenAI = default_value.default_llm,
-        memory: ConversationBufferMemory = default_value.default_memory,
-        chat_history: MessagesPlaceholder = default_value.default_chat_history,
-        verbose: bool = False,
-        ):
-        self.llm = llm
-        self.memory = memory
-        self.chat_history = chat_history
-        self.verbose = verbose
-        
-        # デバッグモードの設定
-        langchain.debug = self.verbose
-        
     def run(self, input):
-        self.agent_kwargs = {
-            "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
-            "extra_prompt_messages": [self.chat_history]
-        }
-        self.default_agent = initialize_agent(
-            tools=default_tools,
-            llm=self.llm,
-            agent=AgentType.OPENAI_FUNCTIONS,
-            verbose=self.verbose,
-            agent_kwargs=self.agent_kwargs,
-            memory=self.memory
+        # DefaultAgent特有の処理
+        default_agent = self.initialize_agent(
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+            tools=default_tools,  # 事前に定義されたdefault関数
+            system_message_template=DEFAULT_SYSTEM_PROMPT
         )
-        return self.default_agent.run(input)
-
-
-# debag
-# print(Agent.run("あなたについて教えて"))
+        return default_agent.run(input)

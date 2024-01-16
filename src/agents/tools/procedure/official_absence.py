@@ -1,16 +1,12 @@
 import os
 
-import langchain
-from langchain_openai import AzureChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.agents import AgentType, initialize_agent
-from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
+from langchain.agents import AgentType
 from langchain.tools import tool
 import json
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-from ...template import default_value
+from ...template.agent_model import BaseToolAgent
 
 
 
@@ -239,6 +235,7 @@ def application_items(
 
 
 application_items_tools = [application_items]
+official_absence_model_kwargs = {"top_p": 0.1, "function_call": {'name': 'application_items'}}
 
 
 class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入力スキーマ
@@ -246,78 +243,16 @@ class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入�
         description="The user's most recent utterance that is communicated to the person in charge of application for official absence notification")
 
 
-class OfficialAbsenceAgent:
-    def __init__(
-        self,
-        llm: AzureChatOpenAI = default_value.default_llm,
-        memory: ConversationBufferMemory = default_value.default_memory,
-        chat_history: MessagesPlaceholder = default_value.default_chat_history,
-        verbose: bool = False,
-    ):
-        self.official_absence_llm = AzureChatOpenAI(
-            openai_api_base=llm.openai_api_base,
-            openai_api_version=llm.openai_api_version,
-            deployment_name=llm.deployment_name,
-            openai_api_key=llm.openai_api_key,
-            openai_api_type=llm.openai_api_type,
-            temperature=llm.temperature,
-            model_kwargs={"top_p": 0.1, "function_call": {
-                "name": "application_items"}}
-        )
-        self.memory = memory
-        self.chat_history = chat_history
-        self.verbose = verbose
-
-        # デバッグモードの設定
-        langchain.debug = self.verbose
+class OfficialAbsenceAgent(BaseToolAgent):
+    def __init__(self, llm, memory, chat_history, verbose):
+        super().__init__(llm, memory, chat_history, verbose, model_kwargs=official_absence_model_kwargs)
+        # OfficialAbsenceAgent 特有の初期化（もしあれば）
 
     def run(self, input):
-        agent_kwargs = {
-            "system_message": SystemMessagePromptTemplate.from_template(template=APPLICATION_ITEMS_SYSTEM_PROMPT),
-            "extra_prompt_messages": [self.chat_history]
-        }
-        application_items_agent = initialize_agent(
-            tools=application_items_tools,
-            llm=self.official_absence_llm,
-            agent=AgentType.OPENAI_FUNCTIONS,
-            verbose=self.verbose,
-            agent_kwargs=agent_kwargs,
-            memory=self.memory
+        # OfficialAbsenceAgent特有の処理
+        official_absence_agent = self.initialize_agent(
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+            tools=application_items_tools,  # 事前に定義されたapplication_items関数
+            system_message_template=APPLICATION_ITEMS_SYSTEM_PROMPT
         )
-        return application_items_agent.run(input)
-
-# def run(message, verbose, memory, chat_history, llm):
-#     official_absence_llm = AzureChatOpenAI( 
-#         openai_api_base=llm.openai_api_base,
-#         openai_api_version=llm.openai_api_version,
-#         deployment_name=llm.deployment_name,
-#         openai_api_key=llm.openai_api_key,
-#         openai_api_type=llm.openai_api_type,
-#         temperature=llm.temperature,
-#         model_kwargs={"top_p": 0.1, "function_call": {"name": "application_items"}}
-#     )
-#     agent_kwargs = {
-#         "system_message": SystemMessagePromptTemplate.from_template(template=APPLICATION_ITEMS_SYSTEM_PROMPT),
-#         "extra_prompt_messages": [chat_history]
-#     }
-#     official_absence_agent = initialize_agent(
-#         tools=application_items_tools,
-#         llm=official_absence_llm,
-#         agent=AgentType.OPENAI_FUNCTIONS,
-#         verbose=verbose,
-#         agent_kwargs=agent_kwargs,
-#         memory=memory
-#     )
-#     ai_response = official_absence_agent.run(message)
-#     return ai_response
-
-
-# message = "公欠届を申請したいです。"
-# print(official_absence_agent.run(message))
-
-# while True:
-#     message = input(">> ")
-#     if message == "exit":
-#         break
-#     response = official_absence_agent.run(message)
-#     print(response)
+        return official_absence_agent.run(input)

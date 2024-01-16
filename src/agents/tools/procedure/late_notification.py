@@ -241,6 +241,7 @@ def late_notification_items(
 
 
 late_notification_items_tools = [late_notification_items]
+late_notification_model_kwargs = {"top_p": 0.1, "function_call": {'name': 'late_notification_items'}}
 
 
 
@@ -249,57 +250,16 @@ class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入�
         description="This is the user's most recent utterance that is communicated to the person in charge of delay notification application")
 
 
-# class LateNotificationAgent:
-#     def __init__(
-#         self,
-#         llm: AzureChatOpenAI = default_value.default_llm,
-#         memory: ConversationBufferMemory = default_value.default_memory,
-#         chat_history: MessagesPlaceholder = default_value.default_chat_history,
-#         verbose: bool = False,
-#     ):
-        # self.late_notification_llm = AzureChatOpenAI(
-        #     openai_api_base=llm.openai_api_base,
-        #     openai_api_version=llm.openai_api_version,
-        #     deployment_name=llm.deployment_name,
-        #     openai_api_key=llm.openai_api_key,
-        #     openai_api_type=llm.openai_api_type,
-        #     temperature=llm.temperature,
-        #     model_kwargs={"top_p": 0.1, "function_call": {
-        #         "name": "late_notification_items"}}
-        # )
-#         self.memory = memory
-#         self.chat_history = chat_history
-#         self.verbose = verbose
-
-#         # デバッグモードの設定
-#         langchain.debug = self.verbose
-
-
-#     def run(self, input):
-#         self.agent_kwargs = {
-#             "system_message": SystemMessagePromptTemplate.from_template(template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT),
-#             "extra_prompt_messages": [self.chat_history]
-#         }
-#         self.late_notification_agent = initialize_agent(
-#             tools=late_notification_items_tools,
-#             llm=self.late_notification_llm,
-#             agent=AgentType.OPENAI_FUNCTIONS,
-#             verbose=self.verbose,
-#             agent_kwargs=self.agent_kwargs,
-#             memory=self.memory
-#         )
-#         return self.late_notification_agent.run(input)
 
 class LateNotificationAgent(BaseToolAgent):
     def __init__(self, llm, memory, chat_history, verbose):
-        self.model_kwargs = {"top_p": 0.1, "function_call": {'name': 'late_notification_items'}}
-        super().__init__(llm, memory, chat_history, verbose, model_kwargs=self.model_kwargs)
+        super().__init__(llm, memory, chat_history, verbose, model_kwargs=late_notification_model_kwargs)
     
     def run(self, input):
         # LateNotificationAgent特有の処理
         late_notification_agent = self.initialize_agent(
             agent_type=AgentType.OPENAI_FUNCTIONS,
-            tool_function=late_notification_items,  # 事前に定義されたlate_notification_items関数
+            tools=late_notification_items_tools,  # 事前に定義されたlate_notification_items関数
             system_message_template=LATE_NOTIFICATION_ITEMS_SYSTEM_PROMPT
         )
         return late_notification_agent.run(input)

@@ -2,16 +2,11 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-import langchain
-from langchain_openai import AzureChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.agents import AgentType, initialize_agent, tool
+from langchain.agents import AgentType, tool
 from langchain_community.retrievers import AzureCognitiveSearchRetriever
-from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
-from langchain.tools import tool
 from pydantic.v1 import BaseModel, Field
 
-from ...template import default_value
+from ...template.agent_model import BaseToolAgent
 
 
 # システムプロンプトの設定
@@ -89,43 +84,17 @@ class SchoolAgentInput(BaseModel):
         description="The user's most recent utterance that is communicated to the person in charge of the school database search.")
 
 
-class SchoolAgent:
-    def __init__(
-        self,
-        llm: AzureChatOpenAI = default_value.default_llm,
-        memory: ConversationBufferMemory = default_value.default_memory,
-        chat_history: MessagesPlaceholder = default_value.default_chat_history,
-        verbose: bool = False,
-    ):
-        self.llm = llm
-        self.memory = memory
-        self.chat_history = chat_history
-        self.verbose = verbose
-
-        langchain.debug = self.verbose
+class SchoolAgent(BaseToolAgent):
+    def __init__(self, llm, memory, chat_history, verbose):
+        super().__init__(llm, memory, chat_history, verbose)
+        # SchoolAgent 特有の初期化（もしあれば）
 
     def run(self, input):
-        self.agent_kwargs = {
-            "system_message": SystemMessagePromptTemplate.from_template(template=SEARCHDB_SYSTEM_PROMPT),
-            "extra_prompt_messages": [self.chat_history]
-        }
-        self.search_database_agent = initialize_agent(
-            tools=search_tools,
-            llm=self.llm,
-            agent=AgentType.OPENAI_FUNCTIONS,
-            verbose=self.verbose,
-            agent_kwargs=self.agent_kwargs,
-            memory=self.memory
+        # SchoolAgent特有の処理
+        school_agent = self.initialize_agent(
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+            tools=search_tools,  # 事前に定義されたsearch関数
+            system_message_template=SEARCHDB_SYSTEM_PROMPT
         )
-        return self.search_database_agent.run(input)
-
-#debag
-# while True:
-#     message = input(">> ")
-#     if message == "exit" or message == ":q":
-#         break
-#     try:
-#         search_agent.run(message)
-#     except Exception as e:
-#         print(e)
+        return school_agent.run(input)
 

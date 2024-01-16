@@ -56,8 +56,8 @@ class Command:
             return agent.run(self.user_message)
         else:
             return_text = """{{ command }} というコマンドは見つかりませんでした。
-            コマンドは ”/コマンド名+半角スペース” で実行できます。
-            コマンド名がわからない場合は /help でコマンド一覧を確認できます。
-            """
+コマンドは ”/コマンド名+半角スペース” で実行できます。
+コマンド名がわからない場合は /help でコマンド一覧を確認できます。
+"""
             return_text = return_text.format(command=command)
             return return_text

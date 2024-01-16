@@ -104,12 +104,3 @@ class SearchAgent:
         return self.agent.run(input)
 
 
-# while(True):
-#     message = input(">> ")
-#     if message == "exit" or message == ":q":
-#         break
-#     try:
-#         output = agent.run(message)
-#         print(output)
-#     except Exception as e:
-#         print(e)

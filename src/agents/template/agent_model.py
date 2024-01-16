@@ -190,14 +190,14 @@ class BaseToolAgent:
         raise NotImplementedError(
             "This method should be implemented by subclasses.")
 
-    def initialize_agent(self, agent_type: AgentType, tool_function, system_message_template):
+    def initialize_agent(self, agent_type: AgentType, tools: List, system_message_template: str):
         
         agent_kwargs = {
             "system_message": SystemMessagePromptTemplate.from_template(template=system_message_template),
             "extra_prompt_messages": [self.chat_history]
         }
         agent_function = initialize_agent(
-            tools=[tool_function],
+            tools=tools,
             llm=self.llm,
             agent=agent_type,
             verbose=self.verbose,

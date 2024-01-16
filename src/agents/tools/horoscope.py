@@ -1,15 +1,9 @@
-import langchain
-from langchain_openai import AzureChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate
-from langchain.agents import AgentType, initialize_agent, tool
-from langchain.tools import tool
+from langchain.agents import AgentType, tool
 import json
 import requests
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-from ..template import default_value
 from ..template.agent_model import BaseToolAgent
 
 # システムプロンプトの設定
@@ -116,7 +110,7 @@ class HoroscopeAgent(BaseToolAgent):
         # HoroscopeAgent特有の処理
         horoscope_agent = self.initialize_agent(
             agent_type=AgentType.OPENAI_FUNCTIONS,
-            tool_function=horoscope,  # 事前に定義されたhoroscope関数
+            tools=horoscope_tools,  # 事前に定義されたhoroscope関数
             system_message_template=HOROSCOPE_SYSTEM_PROMPT
         )
         return horoscope_agent.run(input)
