@@ -1,6 +1,6 @@
-# from agents.db import vector, school_db
-# from agents.db.school_db import insert_data
-# from langchain_community.document_loaders import PyPDFLoader
+from agents.db import vector, school_db
+from agents.db.school_db import insert_data
+from langchain_community.document_loaders import PyPDFLoader
 
 
 # SQLDBの操作関数
@@ -40,10 +40,3 @@
 #     print(doc.page_content, doc.metadata["split_source"])
 
 
-from agents import command
-test_code = """/test 
-dfaoeif
-"""
-
-test = command.check_command(test_code)
-print(test.check_command_bool, test.command)
