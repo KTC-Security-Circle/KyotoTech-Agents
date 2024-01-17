@@ -9,7 +9,7 @@ class ProcedureAgentInput(BaseModel):
     user_utterance: str = Field(
         description="This is the user's most recent utterance that is communicated to the person in charge of various procedures.")
 
-def default_answer():
+def default_answer(input):
     message = (
             f'私が行うことのできる各種申請は以下の通りです。\n'
             f'・公欠届\n'
@@ -33,21 +33,24 @@ class ProcedureAgent(BaseDispatcherAgent):
             Tool.from_function(
                 func=self.late_notification_agent.run,
                 name="late_notification",
-                description="This person is in charge of late notifications. This person should be responsible for handling conversations related to late notifications.",
+                # description="この担当者は遅延届申請を受け付けている担当者。ユーザーが遅延届を届け出たい場合はこの担当者に任せる。",
+                description="This person is the person in charge of accepting late report applications. If a user wants to report a delay, this person is in charge.",
                 args_schema=procedure.LateNotificationAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=self.official_absence_agent.run,
                 name="official_absence",
-                description="This person is in charge of official absences. This person should be responsible for handling conversations related to official absences.",
+                # description="この担当者は公欠届申請を受け付けている担当者。ユーザーが公欠届を届け出たい場合はこの担当者に任せる。"
+                description="This person is the person in charge of accepting public absence notification applications. If the user wants to report a public absence, this person is in charge.",
                 args_schema=procedure.OfficialAbsenceAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=self.default_answer,
                 name="DEFAULT",
-                description="This is the person in charge of general conversations. This person should be assigned to handle conversations that are general and should not be left to a specific expert.",
+                # description="この担当者は専門的な会話ではない場合に任せる担当者。"
+                description="This person is the person to leave in charge when the conversation is not a professional one.",
                 return_direct=True
             ),
         ]

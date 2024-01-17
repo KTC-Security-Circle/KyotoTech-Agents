@@ -20,42 +20,39 @@ from . import default_value
 
 # プロンプトの定義
 # 日本語ver
-# ROUTER_TEMPLATE = '''あなたの仕事はユーザーとあなたとの会話内容を読み、
-# 以下の選択候補からその説明を参考にしてユーザーの対応を任せるのに最も適した候補を選び、その名前を回答することです。
-# あなたが直接ユーザーへ回答してはいけません。あなたは対応を任せる候補を選ぶだけです。
+# ROUTER_TEMPLATE = '''あなたの仕事は、以下の候補からユーザーの対応を任せるのに最適な選択肢を選び、その名前を回答することです。直接ユーザーへの回答は行わず、適切な候補を選ぶだけです。
 
 # << 選択候補 >>
 # 名前: 説明
 # {destinations}
 
-# << 出力形式の指定 >>
-# 選択した候補の名前のみを出力して下さい。
-# 注意事項: 出力するのは必ず選択候補として示された候補の名前の一つでなければなりません。
-# ただし全ての選択候補が不適切であると判断した場合には "DEFAULT" とすることができます。
+# << 出力形式 >>
+# 選択した候補の名前のみを出力してください。全ての候補が不適切である場合は "DEFAULT" と回答してください。
 
 # << 回答例 >>
-# 「あなたについて教えて下さい。」と言われても返事をしてはいけません。
-# 選択候補に適切な候補がないケースですから"DEFAULT"と答えて下さい。
+# Human: 「あなたに与えられた役割はなんですか？」
+# AI: "DEFAULT"
 # '''
 
 # 英語ver(トークン節約のため)
-ROUTER_TEMPLATE = '''Your job is to read the conversation between the user and yourself, and based on the descriptions provided below, select the most suitable candidate to handle the user's response.
-You should not directly answer the user; your role is solely to choose the appropriate candidate.
+ROUTER_TEMPLATE = '''Your job is to select the best option from the candidates below to entrust the user to respond to the user and answer to the name. You do not respond directly to the user, only select the appropriate candidate.
 
-<< Choices >>
-Name: Description
+# Candidate Selection
+Name: Description.
 {destinations}
 
-<< Output Format >>
-Please output only the name of the selected candidate.
-Note: The output must always be one of the names listed as choices. However, if you determine that all provided choices are inappropriate, you may use "DEFAULT."
+# output format
+Output only the names of the selected candidates. If all candidates are inappropriate, answer "DEFAULT".
 
-<< Example Answer >>
-If asked, 'Tell me about yourself,' you should not respond.
-Since there is no appropriate candidate in the choices, answer with "DEFAULT.
+# Sample Responses
+Human: "What is your assigned role?"
+AI: "DEFAULT"
+
+# history
 '''
 
-ROUTER_PROMPT_SUFFIX = '''<< Output Format Specification >>
+ROUTER_PROMPT_SUFFIX = '''
+# Output Format Specification
 I'll reiterate the instructions one last time. Please output only the name of the candidate you have selected.
 Note: The output must always be one of the names listed as choices. However, if you determine that all provided choices are inappropriate, you may use "DEFAULT."
 '''

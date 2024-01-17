@@ -11,7 +11,7 @@ class SearchAgentInput(BaseModel):
     user_utterance: str = Field(
         description="This is the user's most recent utterance that is communicated to the person in charge of various procedures.")
 
-def default_answer():
+def default_answer(input):
     message = (
             f'私が行うことのできる各種検索は以下の通りです。\n'
             f'・学校データ\n'
@@ -39,24 +39,24 @@ class SearchAgent(BaseDispatcherAgent):
             Tool.from_function(
                 func=self.school_agent.run,
                 name="school_agent",
-                # description="学校の概要について検索をする担当者です。学校や京都テックについての検索に関係する会話の対応はこの担当者にまかせるべきです。", # 日本語ver
-                description="This person is in charge of searching for information about the school. This person should be entrusted to handle conversations related to your search about the school and Kyoto Tech.",  # 英語ver
+                # description="この担当者は京都テックという名前の学校の受付担当者。京都テックについて聞かれた場合や専攻等について聞かれた場合はこの担当者に任せる。", # 日本語ver
+                description="This person is the receptionist for the school named Kyoto Tech. If you are asked about Kyoto Tech, your major, etc., leave it to this person.",  # 英語ver
                 args_schema=search.SchoolAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=self.class_agent.run,
                 name="class_agent",
-                # description="授業のことに関する担当者です。授業についての質問や授業データの検索に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
-                description="This is the person in charge regarding class matters. This person should be the person to contact for questions about the class and for handling conversations related to the retrieval of class data.",  # 英語ver
+                # description="この担当者は学校の先生をまとめる担当者。授業のことについてや技術的な質問について聞かれた場合はこの担当者に任せる。", # 日本語ver
+                description="This person is in charge of organizing the teachers at the school. If you are asked about a class or about technical questions, this person is in charge.",  # 英語ver
                 args_schema=search.ClassAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
                 func=self.scholarship_agent.run,
                 name="scholarship_agent",
-                # description="奨学金のことに関する担当者です。奨学金についての質問や奨学金データの検索に関係する会話の対応はこの担当者に任せるべきです。", # 日本語ver
-                description="This is your contact person regarding scholarship matters. This person should be the one to handle any questions about the scholarship and any conversations related to the scholarship data search.",  # 英語ver
+                # description="この担当者は奨学金についての相談受付担当者。奨学金について聞かれた場合はこの担当者に任せる。", # 日本語ver
+                description="This person is the person in charge of counseling about the scholarship. If you are asked about scholarships, this person will be your contact person.",  # 英語ver
                 args_schema=search.ScholarshipAgentInput,
                 return_direct=True
             ),
