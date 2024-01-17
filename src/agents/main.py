@@ -4,7 +4,7 @@ from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 
 from .command import Command, check_command
-from .dispatcher import Agent
+from .dispatcher import MainDispatcherAgent
 from .template import default_value
 
 
@@ -79,7 +79,7 @@ class MainAgent:
             )
             return CommandAgent.run(param.command, user_message)
         
-        main_agent = Agent(
+        main_agent = MainDispatcherAgent(
             llm=self.llm,
             memory=self.memory,
             readonly_memory=self.readonly_memory,

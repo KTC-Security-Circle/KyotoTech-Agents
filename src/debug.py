@@ -1,7 +1,6 @@
 from langchain.memory import ConversationBufferMemory
 
 import agents
-from agents import tools
 
 
 # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
@@ -32,10 +31,8 @@ while True:
                 print("err : " + str(e))
         print("終了します。")
         break
-    try:
-        ai_response = agent.run(message)
-        print(f'AI : {ai_response}')
-    except Exception as e:
-        print("err : " + str(e))
-        break
+
+    ai_response = agent.run(message)
+    print(f'AI : {ai_response}')
+
 

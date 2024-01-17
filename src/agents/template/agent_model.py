@@ -2,7 +2,7 @@ import langchain
 from langchain.chains.llm import LLMChain
 from langchain_openai import AzureChatOpenAI
 from langchain.memory import ReadOnlySharedMemory, ConversationBufferMemory
-from langchain.agents import BaseSingleActionAgent,  Tool, AgentType, initialize_agent
+from langchain.agents import BaseSingleActionAgent,  Tool, AgentType, initialize_agent, AgentExecutor
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import (
     AgentAction,
@@ -15,7 +15,7 @@ from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTempl
 from pydantic.v1 import Extra
 from typing import Any, List, Tuple, Set, Union
 
-
+from . import default_value
 
 
 # プロンプトの定義
@@ -168,10 +168,58 @@ class DispatcherAgent(BaseSingleActionAgent):
         return AgentAction(tool=destination, tool_input=kwargs["input"], log="")
 
 
-class BaseToolAgent:
-    def __init__(self, llm: AzureChatOpenAI, memory: ConversationBufferMemory, chat_history: MessagesPlaceholder, verbose: bool, model_kwargs: dict = None):
+class BaseDispatcherAgent:
+    def __init__(
+        self, 
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        readonly_memory: ReadOnlySharedMemory = default_value.default_readonly_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+        ):
+        """
+        このクラスは、ユーザーの入力を受け取り、適切なツールを選択して実行するディスパッチャーエージェントの基底クラスです。
+        """
         self.llm = llm
-        if model_kwargs:
+        self.memory = memory
+        self.readonly_memory = readonly_memory
+        self.chat_history = chat_history
+        self.verbose = verbose
+        self.tools = self.define_tools()
+        self.dispatcher_agent = self.create_dispatcher_agent()
+
+    def define_tools(self):
+        # ツールの定義をサブクラスで実装
+        raise NotImplementedError
+
+    def create_dispatcher_agent(self):
+        return DispatcherAgent(
+            chat_model=self.llm,
+            readonly_memory=self.readonly_memory,
+            tools=self.tools,
+            verbose=self.verbose
+        )
+
+    def run(self, user_message):
+        # 共通の run メソッド
+        agent = AgentExecutor.from_agent_and_tools(
+            agent=self.dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
+        )
+        return agent.run(user_message)
+
+
+
+class BaseToolAgent:
+    def __init__(
+        self,
+        llm: AzureChatOpenAI = default_value.default_llm,
+        memory: ConversationBufferMemory = default_value.default_memory,
+        chat_history: MessagesPlaceholder = default_value.default_chat_history,
+        verbose: bool = False,
+        model_kwargs: dict = None
+        ):
+        self.llm = llm
+        if model_kwargs: # モデルのkwargsを上書きする場合
             self.llm = AzureChatOpenAI(
                 openai_api_base=llm.openai_api_base,
                 openai_api_version=llm.openai_api_version,
