@@ -36,7 +36,7 @@ default_embeddings_model = AzureOpenAIEmbeddings(
     chunk_size=1
 )
 
-
+# azure AI Search 関係の定義
 vector_store_address: str = os.environ["AZURE_SEARCH_ENDPOINT"]
 vector_store_password: str = os.environ["AZURE_SEARCH_KEY"]
 embeddings: AzureOpenAIEmbeddings = default_embeddings_model

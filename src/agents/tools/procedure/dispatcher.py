@@ -9,14 +9,16 @@ class ProcedureAgentInput(BaseModel):
     user_utterance: str = Field(
         description="This is the user's most recent utterance that is communicated to the person in charge of various procedures.")
 
+
+DEFAULT_ANSWER = """私が行うことのできる各種申請は以下の通りです。
+・公欠届
+・遅延届
+
+○○を申請したいと言ってもらえれば、詳細を聞き申請をすることができます。
+"""
+
 def default_answer(input):
-    message = (
-            f'私が行うことのできる各種申請は以下の通りです。\n'
-            f'・公欠届\n'
-            f'・遅延届\n'
-            f'○○を申請したいと言ってもらえれば、詳細を聞き申請をすることができます。'
-        )
-    return message
+    return DEFAULT_ANSWER
 
 class ProcedureAgent(BaseDispatcherAgent):
     def __init__(self, llm, memory, readonly_memory, chat_history, verbose):

@@ -51,6 +51,7 @@ AI: "DEFAULT"
 # history
 '''
 
+# 追いプロンプトの定義
 ROUTER_PROMPT_SUFFIX = '''
 # Output Format Specification
 I'll reiterate the instructions one last time. Please output only the name of the candidate you have selected.
@@ -60,7 +61,10 @@ Note: The output must always be one of the names listed as choices. However, if 
 
 
 class DestinationOutputParser(BaseOutputParser[str]):
-    # 目的地の集合を定義します。
+    """
+    このクラスは、ルーターチェーンの出力を解析して目的地を決定するための出力パーサーです。
+    """
+
     destinations: Set[str]
 
     class Config:
@@ -93,7 +97,9 @@ class DestinationOutputParser(BaseOutputParser[str]):
 
 
 class DispatcherAgent(BaseSingleActionAgent):
-    # チャットモデル、読み取り専用メモリ、ツールのリスト、および詳細なログ出力を制御するブール値フラグを定義します。
+    """
+    このクラスは、ユーザーの入力を受け取り、適切なツールを選択して実行するディスパッチャーエージェントです。
+    """
     chat_model: BaseChatModel
     readonly_memory: ReadOnlySharedMemory
     tools: List[Tool]
@@ -166,6 +172,48 @@ class DispatcherAgent(BaseSingleActionAgent):
 
 
 class BaseDispatcherAgent:
+    """
+    このクラスは、ユーザーの入力を受け取り、適切なツールを選択して実行するディスパッチャーエージェントの基底クラスです。
+    このクラスを継承して、ツールの定義を実装してください。
+    
+    --------------------
+    実装方法:
+    1. クラスの初期化メソッドで、DispatcherAgentの初期化を行う。
+    ```
+    class DispatcherAgent(BaseDispatcherAgent):
+        def __init__(self, llm, memory, readonly_memory, chat_history, verbose):
+            super().__init__(llm, memory, readonly_memory, chat_history, verbose)
+            
+        def define_tools(self) -> List[Tool]:
+            ...
+    ```
+    2. define_tools メソッドで、ツールの定義を行う。
+    ```
+        def define_tools(self) -> List[Tool]:
+            tool_1 = # 呼び出したいツールの定義１
+            tool_2 = # 呼び出したいツールの定義２
+            ...
+            tools = [
+                Tool.from_function(
+                    func=tool_1.run, # ツールの実行関数
+                    name="tool_1", # ツールの名前
+                    description="tool_1の説明"
+                    args_schema=tool_1_input_schema, # ツールの入力スキーマ
+                    return_direct=True # ツールの出力を直接返すかどうか
+                ), 
+                Tool.from_function(
+                    func=tool_2.run,
+                    name="tool_2",
+                    description="tool_2の説明"
+                    args_schema=tool_2_input_schema,
+                    return_direct=True
+                )
+                ...
+            ]
+            return tools
+    ```
+    3. run メソッドで、ツールの実行を行う。
+    """
     def __init__(
         self, 
         llm: AzureChatOpenAI = default_value.default_llm,
@@ -185,11 +233,19 @@ class BaseDispatcherAgent:
         self.tools = self.define_tools()
         self.dispatcher_agent = self.create_dispatcher_agent()
 
-    def define_tools(self):
+    def define_tools(self) -> List[Tool]:
+        """
+        このメソッドは、ツールの定義を行います。
+        --------------------
+        実装方法:
+        1. ツールのリストを作成する。
+        2. ツールの定義を行う。
+        3. ツールのリストを返す。
+        """
         # ツールの定義をサブクラスで実装
-        raise NotImplementedError
+        raise NotImplementedError("This method should be implemented by subclasses.")
 
-    def create_dispatcher_agent(self):
+    def create_dispatcher_agent(self) -> DispatcherAgent:
         return DispatcherAgent(
             chat_model=self.llm,
             readonly_memory=self.readonly_memory,
@@ -197,16 +253,43 @@ class BaseDispatcherAgent:
             verbose=self.verbose
         )
 
-    def run(self, user_message):
+    def run(self, user_message: str) -> str:
+        """
+        `DispatcherAgent`の実行メソッドです。
+        --------------------
+        実装方法:
+        ```
+        return_message: str = dispatcher_agent.run(user_message: str) 
+        ```
+        """
         # 共通の run メソッド
-        agent = AgentExecutor.from_agent_and_tools(
-            agent=self.dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
-        )
-        return agent.run(user_message)
+        try:
+            agent = AgentExecutor.from_agent_and_tools(
+                agent=self.dispatcher_agent, tools=self.tools, memory=self.memory, verbose=self.verbose
+            )
+            return agent.run(user_message)
+        except Exception as e:
+            raise e
 
 
 
 class BaseToolAgent:
+    """
+    このクラスは、ツールエージェントの基底クラスです。
+    このクラスを継承して、ツールエージェントの定義を実装してください。
+    --------------------
+    実装方法:
+    1. クラスの初期化メソッドで、ツールエージェントの初期化を行う。
+    ```
+    class ToolAgent(BaseToolAgent):
+        def __init__(self, llm, memory, chat_history, verbose):
+            super().__init__(llm, memory, chat_history, verbose)
+            
+        def run(self, input) -> str:
+            ...
+            return agent.run(input)
+    ```
+    """
     def __init__(
         self,
         llm: AzureChatOpenAI = default_value.default_llm,
@@ -215,7 +298,6 @@ class BaseToolAgent:
         verbose: bool = False,
         model_kwargs: dict = None
         ):
-        self.llm = llm
         if model_kwargs: # モデルのkwargsを上書きする場合
             self.llm = AzureChatOpenAI(
                 openai_api_base=llm.openai_api_base,
@@ -226,17 +308,24 @@ class BaseToolAgent:
                 temperature=llm.temperature,
                 model_kwargs=model_kwargs
             )
+        else:
+            self.llm = llm
         self.memory = memory
         self.chat_history = chat_history
         self.verbose = verbose
         langchain.debug = self.verbose
 
-    def run(self, input):
+    def run(self, input) -> str:
         raise NotImplementedError(
             "This method should be implemented by subclasses.")
 
-    def initialize_agent(self, agent_type: AgentType, tools: List, system_message_template: str):
-        
+    def initialize_agent(
+        self,
+        agent_type: AgentType,
+        tools: List,
+        system_message_template: str
+        ) -> initialize_agent:
+        # エージェントの初期化
         agent_kwargs = {
             "system_message": SystemMessagePromptTemplate.from_template(template=system_message_template),
             "extra_prompt_messages": [self.chat_history]
