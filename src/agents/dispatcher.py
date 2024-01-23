@@ -15,6 +15,8 @@ class MainDispatcherAgent(BaseDispatcherAgent):
             llm=self.llm, memory=self.readonly_memory, readonly_memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         self.horoscope_agent = tools.HoroscopeAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
+        self.study_agent = tools.StudyAgent(
+            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         self.default_agent = tools.DefaultAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         
@@ -42,6 +44,14 @@ class MainDispatcherAgent(BaseDispatcherAgent):
                 description="This person in charge is the person in charge who can do horoscopes. When you want to do horoscopes, leave it to this person in charge.", # ツールの説明を指定, この説明をもとにディスパッチャーエージェントはユーザーに対して適切なツールを選択する
                 args_schema=tools.HoroscopeAgentInput, # ツールの入力の定義を指定, この定義をもとにディスパッチャーエージェントはユーザーからの入力をツールに渡す
                 return_direct=True # ツールの出力を直接返すかどうかを指定, Trueの場合はツールの出力をそのまま返す, Falseの場合はツールの出力をディスパッチャーエージェントの入力として再度渡す
+            ),
+            Tool.from_function(
+                func=self.study_agent.run,
+                name="study",
+                # description="この担当者は授業の勉強をお手伝いする担当者。授業の勉強についての会話の対応はこの担当者に任せる。",
+                description="This person is in charge of helping you study for your classes. This person is in charge of handling conversations about studying for your classes.",
+                args_schema=tools.StudyAgentInput,
+                return_direct=True
             ),
             Tool.from_function(
                 func=self.default_agent.run,

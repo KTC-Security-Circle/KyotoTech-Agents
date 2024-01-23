@@ -40,7 +40,6 @@ def search_database(study_input):
     i = 1
     search_result = []
     for doc in docs:
-        # print(doc)
         search_result.append(
             f'{i}件目の検索結果\n'
             f'授業名: {doc.metadata["class_name"]}\n'
@@ -50,13 +49,13 @@ def search_database(study_input):
     return search_result
 
 # エージェントの初期化
-class StudyInput(BaseModel):  # 誕生日を入力するためのモデルを作成。
+class StudyInput(BaseModel):  
     study_input: str = Field(
         description="データベースに検索するための入力です。")
 
 
 @tool("study", return_direct=False, args_schema=StudyInput)  # Agentsツールを作成。
-def study(study_input: str):  # 誕生日を入力すると、星占いをしてくれる関数を作成。
+def study(study_input: str):  
     """授業データベースにアクセスし、検索結果を返答します。"""
     try:
         search_result = search_database(study_input)
@@ -73,19 +72,17 @@ study_tools = [study]
 
 class StudyAgentInput(BaseModel):
     user_utterance: str = Field(
-        description="This is the user's most recent utterance that is communicated to the astrologer.")
+        description="This is the user's most recent utterance that is communicated to the teacher.")
 
 
 class StudyAgent(BaseToolAgent):
     def __init__(self, llm, memory, chat_history, verbose):
         super().__init__(llm, memory, chat_history, verbose)
-        # HoroscopeAgent 特有の初期化（もしあれば）
 
     def run(self, input):
-        # HoroscopeAgent特有の処理
         study_agent = self.initialize_agent(
             agent_type=AgentType.OPENAI_FUNCTIONS,
-            tools=study_tools,  # 事前に定義されたhoroscope関数
+            tools=study_tools,  
             system_message_template=STUDY_SYSTEM_PROMPT
         )
         return study_agent.run(input)
