@@ -38,6 +38,7 @@ class Command:
             return_text = """コマンド一覧
   ・/help : コマンド一覧を表示します。
   ・/search : 検索を行います。
+  ・/study : 授業の勉強をお手伝いします。
   ・/procedure : 手続きを行います。
   ・/horoscope : 星占いを行います。
 
@@ -46,6 +47,9 @@ class Command:
             return return_text
         elif command == "search":
             agent = tools.SearchAgent(llm=self.llm, memory=self.memory, readonly_memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
+            return agent.run(self.user_message)
+        elif command == "study":
+            agent = tools.StudyAgent(llm=self.llm, memory=self.memory, chat_history=self.chat_history, verbose=self.verbose)
             return agent.run(self.user_message)
         elif command == "procedure":
             agent = tools.ProcedureAgent(

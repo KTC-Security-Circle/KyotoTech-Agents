@@ -71,35 +71,6 @@ class HoroscopeAgentInput(BaseModel):
         description="This is the user's most recent utterance that is communicated to the astrologer.")
 
 
-# class HoroscopeAgent:
-#     def __init__(
-#         self,
-#         llm: AzureChatOpenAI = default_value.default_llm,
-#         memory: ConversationBufferMemory = default_value.default_memory,
-#         chat_history: MessagesPlaceholder = default_value.default_chat_history,
-#         verbose: bool = False,
-#         ):
-#         self.llm = llm
-#         self.memory = memory
-#         self.chat_history = chat_history
-#         self.verbose = verbose
-        
-#         langchain.debug = self.verbose
-
-#     def run(self, input):
-#         self.agent_kwargs = {
-#             "system_message": SystemMessagePromptTemplate.from_template(template=HOROSCOPE_SYSTEM_PROMPT),
-#             "extra_prompt_messages": [self.chat_history]
-#         }
-#         self.horoscope_agent = initialize_agent(
-#             tools=horoscope_tools,
-#             llm=self.llm,
-#             agent=AgentType.OPENAI_FUNCTIONS,
-#             verbose=self.verbose,
-#             agent_kwargs=self.agent_kwargs,
-#             memory=self.memory
-#         )
-#         return self.horoscope_agent.run(input)
 
 class HoroscopeAgent(BaseToolAgent):
     def __init__(self, llm, memory, chat_history, verbose):
@@ -115,13 +86,3 @@ class HoroscopeAgent(BaseToolAgent):
         )
         return horoscope_agent.run(input)
 
-
-
-# debag code
-# horoscope_agent.run("私の今日の運勢を教えて。")
-# horoscope_agent.run("私の誕生日は3月3日です。")
-# while True:
-#     message = input(">> ")
-#     if message == "exit":
-#         break
-#     horoscope_agent.run(message)

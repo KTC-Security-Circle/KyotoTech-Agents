@@ -30,9 +30,10 @@ from langchain_core.documents import Document
 # loader = TextLoader("2023後期シラバス_月12_Python機械学習_木元先生.txt")
 # file_data = loader.load()
 # print(file_data)
-# with open("2023後期シラバス_月12_Python機械学習_木元先生.txt") as f:
+# with open("シラバス/text/2023後期シラバス_水3_データ分析応用_伊藤先生.txt") as f:
 #     file_data = f.read()
-#     metadata = {'source': '2023後期シラバス_月12_Python機械学習_木元先生.txt', 'class_name': 'python機械学習'}
+#     metadata = {'source': '2023後期シラバス_水3_データ分析応用_伊藤先生.txt',
+#                 'class_name': 'データ分析応用'}
 #     text_splitter = CharacterTextSplitter(
 #         separator="\n",
 #         chunk_size=50,
@@ -46,8 +47,8 @@ from langchain_core.documents import Document
 #     documents = []
 #     for doc in split_docs:
 #         doc.metadata = metadata
+#         doc.metadata["split_source"] = doc.page_content
 #         documents.append(doc)
-
 
 #     vector.dilect_vector("vector-class-data", documents)
 
@@ -63,6 +64,6 @@ from langchain_core.documents import Document
 # vector.add_vector("scholarship_data")
 
 # ベクターストア検索
-res = vector.search_vector("vector-class-data", "python")
-for doc in res:
-    print(doc.page_content, doc.metadata["split_source"])
+# res = vector.search_vector("vector-class-data", "web")
+# for doc in res:
+#     print(doc.page_content, doc.metadata["split_source"])
