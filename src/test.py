@@ -1,6 +1,8 @@
-from agents.db import vector, school_db
+from agents.db import vector, school_db, models
+from langchain.text_splitter import CharacterTextSplitter
 from agents.db.school_db import insert_data
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from langchain_core.documents import Document
 
 
 # SQLDBの操作関数
@@ -24,6 +26,32 @@ from langchain_community.document_loaders import PyPDFLoader
 #                 data=doc.page_content, metadata=doc.metadata)
 
 
+# python_dataの例
+# loader = TextLoader("2023後期シラバス_月12_Python機械学習_木元先生.txt")
+# file_data = loader.load()
+# print(file_data)
+# with open("2023後期シラバス_月12_Python機械学習_木元先生.txt") as f:
+#     file_data = f.read()
+#     metadata = {'source': '2023後期シラバス_月12_Python機械学習_木元先生.txt', 'class_name': 'python機械学習'}
+#     text_splitter = CharacterTextSplitter(
+#         separator="\n",
+#         chunk_size=50,
+#         chunk_overlap=0,
+#         length_function=len,
+#         is_separator_regex=False,
+#     )
+
+#     split_docs = text_splitter.create_documents([file_data])
+
+#     documents = []
+#     for doc in split_docs:
+#         doc.metadata = metadata
+#         documents.append(doc)
+
+
+#     vector.dilect_vector("vector-class-data", documents)
+
+
 # テーブル削除
 # school_db.drop_table("class_data")
 # school_db.drop_table("scholarship_data")
@@ -35,8 +63,6 @@ from langchain_community.document_loaders import PyPDFLoader
 # vector.add_vector("scholarship_data")
 
 # ベクターストア検索
-# res = vector.search_vector("vector-scholarship-data", "奨学金について")
-# for doc in res:
-#     print(doc.page_content, doc.metadata["split_source"])
-
-
+res = vector.search_vector("vector-class-data", "python")
+for doc in res:
+    print(doc.page_content, doc.metadata["split_source"])

@@ -74,6 +74,18 @@ def add_vector(table_name): # ベクトルdata追加関数
         print(e)
         return
 
+def dilect_vector(index_name, documents): # ベクトルdata追加関数
+    vector_store: AzureSearch = AzureSearch(
+        azure_search_endpoint=default_value.vector_store_address,
+        azure_search_key=default_value.vector_store_password,
+        index_name=index_name,
+        embedding_function=default_value.embeddings.embed_query,
+    )
+
+
+    vector_store.add_documents(documents=documents)
+
+
 
 
 
