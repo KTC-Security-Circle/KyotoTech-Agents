@@ -54,7 +54,7 @@ def search(
 ):
     """検索ワードから、検索結果を返答します。"""
     def search_database(search_word):
-        docs = search_vector("vector-class-data", search_word)
+        docs = search_vector("vector-class-data", search_word, k=5)
         i = 1
         search_result = []
         for doc in docs:

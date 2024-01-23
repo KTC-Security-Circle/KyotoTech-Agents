@@ -89,7 +89,11 @@ def dilect_vector(index_name, documents): # ベクトルdata追加関数
 
 
 
-def search_vector(index_name, search_word): # ベクトル検索関数
+def search_vector(
+    index_name: str,
+    search_word: str, 
+    k: int = 3
+    ) -> List[Document]: # ベクトル検索関数
     index_name: str = index_name
     vector_store: AzureSearch = AzureSearch(
         azure_search_endpoint=default_value.vector_store_address,
@@ -97,7 +101,7 @@ def search_vector(index_name, search_word): # ベクトル検索関数
         index_name=index_name,
         embedding_function=default_value.embeddings.embed_query,
     )
-    res = vector_store.similarity_search(query=search_word, search_type="hybrid", k=3)
+    res = vector_store.similarity_search(query=search_word, search_type="hybrid", k=k)
     return res
 
 

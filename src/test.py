@@ -27,30 +27,37 @@ from langchain_core.documents import Document
 
 
 # python_dataの例
-# loader = TextLoader("2023後期シラバス_月12_Python機械学習_木元先生.txt")
-# file_data = loader.load()
-# print(file_data)
+# with open("シラバス/text/2023後期シラバス_月12_Python機械学習_木元先生.txt") as f:
+#     file_data1 = f.read()
+
 # with open("シラバス/text/2023後期シラバス_水3_データ分析応用_伊藤先生.txt") as f:
-#     file_data = f.read()
-#     metadata = {'source': '2023後期シラバス_水3_データ分析応用_伊藤先生.txt',
-#                 'class_name': 'データ分析応用'}
-#     text_splitter = CharacterTextSplitter(
-#         separator="\n",
-#         chunk_size=50,
-#         chunk_overlap=0,
-#         length_function=len,
-#         is_separator_regex=False,
-#     )
+#     file_data2 = f.read()
 
-#     split_docs = text_splitter.create_documents([file_data])
+# with open("シラバス/text/2023後期シラバス_月3_WEBフロントエンド実戦開発_佐野先生.txt") as f:
+#     file_data3 = f.read()
 
-#     documents = []
-#     for doc in split_docs:
-#         doc.metadata = metadata
-#         doc.metadata["split_source"] = doc.page_content
-#         documents.append(doc)
+# metadatas = [
+#     {'source': '2023後期シラバス_月12_Python機械学習_木元先生.txt', 'class_name': 'Python機械学習'},
+#     {'source': '2023後期シラバス_水3_データ分析応用_伊藤先生.txt', 'class_name': 'データ分析応用'},
+#     {'source': '2023後期シラバス_月3_WEBフロントエンド実戦開発_佐野先生.txt', 'class_name': 'WEBフロントエンド実践開発'}
+# ]
 
-#     vector.dilect_vector("vector-class-data", documents)
+# text_splitter = CharacterTextSplitter(
+#     separator="\n",
+#     chunk_size=50,
+#     chunk_overlap=0,
+#     length_function=len,
+#     is_separator_regex=False,
+# )
+
+# split_docs = text_splitter.create_documents(
+#     [file_data1, file_data2, file_data3], metadatas=metadatas)
+
+
+# for doc in split_docs:
+#     doc.metadata["split_source"] = doc.page_content
+
+# vector.dilect_vector("vector-class-data", split_docs)
 
 
 # テーブル削除
@@ -64,6 +71,6 @@ from langchain_core.documents import Document
 # vector.add_vector("scholarship_data")
 
 # ベクターストア検索
-# res = vector.search_vector("vector-class-data", "web")
+# res = vector.search_vector("vector-class-data", "python", k=10)
 # for doc in res:
-#     print(doc.page_content, doc.metadata["split_source"])
+#     print(doc)
