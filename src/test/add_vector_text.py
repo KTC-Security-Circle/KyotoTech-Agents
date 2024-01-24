@@ -1,7 +1,7 @@
 from langchain_community.document_loaders import DirectoryLoader
 from langchain.text_splitter import CharacterTextSplitter
 
-from agents.db import vector, school_db, models
+from tech_agents.db import vector, school_db, models
 
 
 # loader = DirectoryLoader('シラバス/text/', glob="**/*.txt")

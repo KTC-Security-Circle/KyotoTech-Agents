@@ -3,7 +3,7 @@ import os, sys
 from langchain.memory import ConversationBufferMemory
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-import agents
+import tech_agents
 
 
 # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
@@ -12,7 +12,7 @@ import agents
 
 # デバッグ先の指定
 # agent = agents.MainAgent(memory=memory, verbose=True)
-agent = agents.MainAgent(verbose=True)
+agent = tech_agents.MainAgent(verbose=True)
 # agent = tools.ProcedureAgent(verbose=True)
 
 

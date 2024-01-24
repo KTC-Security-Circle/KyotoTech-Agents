@@ -1,6 +1,6 @@
-from agents.db import vector, school_db, models
+from tech_agents.db import vector, school_db, models
 from langchain.text_splitter import CharacterTextSplitter
-from agents.db.school_db import insert_data
+from tech_agents.db.school_db import insert_data
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_core.documents import Document
 
