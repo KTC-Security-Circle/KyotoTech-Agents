@@ -11,4 +11,4 @@ agentsパッケージ
 - デフォルトのエージェントは、`agents.tools.default` で、`Agent` クラスを使用してインスタンス化し実行します。
 
 '''
-from tech_agents.main import MainAgent
+from .main import MainAgent
