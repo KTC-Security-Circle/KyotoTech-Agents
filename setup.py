@@ -8,7 +8,7 @@ def requirements_from_file(file_name):
 
 setup(
     name='tech_agents',
-    version='0.0.1',
+    version='0.0.2',
     author='Yuki Kimoto',
     packages=find_packages(),
     install_requires=requirements_from_file('requirements.txt'),
