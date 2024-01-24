@@ -5,9 +5,10 @@ def _from_file(file_name):
 
 setup(
     name='tech_agents',
-    version='0.0.7',
-    author='Yuki Kimoto',
+    version='0.1.0',
+    author='',
+    description='tech_agents : agents use toolagent',
     packages=find_packages(),
     install_requires=_from_file('requirements.txt'),
-    license='LICENSE.txt',
+    license='MIT',
 )

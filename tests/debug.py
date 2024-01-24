@@ -4,7 +4,6 @@ from langchain.memory import ConversationBufferMemory
 
 import tech_agents
 
-
 # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 # memory.save_context({"input": "こんにちは、私の名前は遠藤です。"}, {
 #                     "output": "こんにちは遠藤さん！なんのご用ですか？"})
@@ -14,10 +13,8 @@ import tech_agents
 agent = tech_agents.MainAgent(verbose=True)
 # agent = tools.ProcedureAgent(verbose=True)
 
-
-# run = agents.test
-# print(run())
-
+# debug code
+##### debug前に pip install . を実行 #####
 while True:
     message = input(">> ")
     if message == "exit" or message == "終了":
