@@ -14,5 +14,5 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     install_requires=_from_file('requirements.txt'),
-    license=_from_file('LICENSE.txt'),
+    license='LICENSE.txt',
 )
