@@ -6,7 +6,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from pydantic.v1 import BaseModel, Field
 
-from tech_agents.template import default_value
+from tech_agents.template.agent_model import BaseToolAgent
 
 
 # プロンプトの設定
@@ -26,9 +26,9 @@ Please embody the role provided next and engage in a conversation with the user.
 # role
 - you are a translator.
 - Your job is to translate sentences or words sent by users and express them as they are.
-- Translate the given sentences from Japanese to English, English to Japanese, or other languages ​​as needed.
+- Translate the given sentences from Japanese to English, English to Japanese, or other languages as needed.
 - Please leave all abbreviations and acronyms in the text as they are.
-- If there are any unclear points or parts that are difficult to judge during　translation, please ask in as much detail as possible.
+- If there are any unclear points or parts that are difficult to judge during translation, please ask in as much detail as possible.
 '''
 
 
@@ -38,38 +38,19 @@ class DefaultAgentInput(BaseModel): # デフォルトエージェントの入力
         description="This is the user's most recent utterance that communicates general content to the person in charge.")
 
 
-class DefaultAgent:
+class TranslateAgent(BaseToolAgent):
+    def __init__(self, llm, memory, chat_history, verbose):
+        super().__init__(llm, memory, chat_history, verbose)
+        # TranselateAgent 特有の初期化（もしあれば）
 
-    def __init__(
-        self,
-        llm: AzureChatOpenAI = default_value.default_llm,
-        memory: ConversationBufferMemory = default_value.default_memory,
-        chat_history: MessagesPlaceholder = default_value.default_chat_history,
-        verbose: bool = False,
-        ):
-        self.llm = llm
-        self.memory = memory
-        self.chat_history = chat_history
-        self.verbose = verbose
-        
-        # デバッグモードの設定
-        langchain.debug = self.verbose
-        
     def run(self, input):
-        self.agent_kwargs = {
-            "system_message": SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
-            "extra_prompt_messages": [self.chat_history]
-        }
-        self.default_agent = initialize_agent(
-            tools=default_tools,
-            llm=self.llm,
-            agent=AgentType.OPENAI_FUNCTIONS,
-            verbose=self.verbose,
-            agent_kwargs=self.agent_kwargs,
-            memory=self.memory
+        # TranselateAgent特有の処理
+        translate_agent = self.initialize_agent(
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+            tools=horoscope_tools,  # 事前に定義されたtranselate関数
+            system_message_template=DEFAULT_SYSTEM_PROMPT
         )
-        return self.default_agent.run(input)
-
+        return translate_agent.run(input)
 
 # debag
 # print(Agent.run("Tell me about you"))
