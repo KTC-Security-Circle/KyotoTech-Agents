@@ -2,7 +2,9 @@ import os, sys
 
 from langchain.memory import ConversationBufferMemory
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import tech_agents
+
 
 # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 # memory.save_context({"input": "こんにちは、私の名前は遠藤です。"}, {
@@ -23,7 +25,7 @@ while True:
         if input_message == "Y" or input_message == "y" or input_message == "yes" or input_message == "Yes":
             try:
                 buffer = agent.memory.load_memory_variables({})
-                with open("chat_history.txt", mode="w", encoding='utf-8') as f:
+                with open("./tests/chat_history.txt", mode="w", encoding='utf-8') as f:
                     f.write(f'{buffer["chat_history"]}')
                     print("会話履歴を保存しました。")
             except Exception as e:

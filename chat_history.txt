@@ -1,1 +1,0 @@
-[HumanMessage(content='こんにちは'), AIMessage(content='こんにちは！京都テックのKyotoTECH君です。何かお手伝いできることはありますか？')]
