@@ -1,8 +1,13 @@
-from tech_agents.db import vector, school_db, models
+import os
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
+from tech_db import vector, school_db, models
 from langchain.text_splitter import CharacterTextSplitter
-from tech_agents.db.school_db import insert_data
+from tech_db.school_db import insert_data
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_core.documents import Document
+
 
 
 # SQLDBの操作関数

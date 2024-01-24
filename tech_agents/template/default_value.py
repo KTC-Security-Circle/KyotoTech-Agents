@@ -1,18 +1,9 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
 from langchain_openai import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 from langchain_openai import AzureOpenAIEmbeddings
-# from langchain_openai import OpenAIEmbeddings
-from azure.search.documents.indexes.models import (
-    SearchableField,
-    SearchField,
-    SearchFieldDataType,
-    SimpleField,
-)
 
 
 

@@ -28,6 +28,10 @@ from tech_agents.template.agent_model import BaseToolAgent
 
 
 # # あなたの取るべき行動
+# - あなたが行うことは、 late_notification_items 関数を実行して遅延届を申請することです。
+# - ユーザーに返答する際は必ず late_notification_items 関数を実行してください。
+# - もし具体的な日付が与えられなかった場合は、 get_todays_date 関数を実行して今日の日付を取得してください。
+# - 昨日などの相対的な表現で与えられた場合は、 get_todays_date 関数を実行して取得した日付から見た相対的な日付を設定してください。
 # - 必要な情報に未知の項目がある場合は予測や仮定をせず、"***" に置き換えた上で、ユーザーから与えられた情報を late_notification_items 関数に設定し confirmed = false で実行して下さい。
 # - あなたの「電鉄がWEB上に掲載する遅延証明内容と相違はありませんか?」の問いかけに対して、ユーザーから肯定的な返答が確認できた場合のみ late_notification_items 関数を check_late_time = true で実行し申請を行って下さい。
 # - あなたの「最終確認です。以下の内容で遅延届を申請しますが、よろしいですか?」の問いかけに対して、ユーザーから肯定的な返答が確認できた場合のみ late_notification_items 関数を confirmed = true で実行し申請を行って下さい。
@@ -70,6 +74,10 @@ All of the following information is required in order to accept a late report re
 
 
 # Action to be taken by you
+- All you do is file a late notification by executing the late_notification_items function.
+- Be sure to execute the late_notification_items function when replying to the user.
+- If a specific date is not given, then execute the get_todays_date function to get today's date.
+- If a relative expression such as yesterday is given, then execute the get_todays_date function to set the date relative to the date obtained.
 - If there are unknown items in the required information, do not make any predictions or assumptions, replace them with "***", set the information given by the user to the late_notification_items function, and execute with confirmed = false.
 - Your question "Is there any discrepancy between this and the late notification posted on the web by Dentetsu?" should be answered in the affirmative by the user. If the user responds in the affirmative to your question "Is there any difference between the delay certificate and the one posted on the web by Dentetsu?
 - Your "Final confirmation. I would like to submit a late notification with the following information. If the user responds affirmatively to your "Final confirmation, I would like to submit a late notification with the following information.
@@ -234,9 +242,17 @@ def late_notification_items(
             return request_information_template
 
 
-late_notification_items_tools = [late_notification_items]
-late_notification_model_kwargs = {"top_p": 0.1, "function_call": {'name': 'late_notification_items'}}
+@tool("get_todays_date", return_direct=False)
+def get_todays_date() -> str:
+    """今日の日付を取得する関数です。"""
+    t_delta = datetime.timedelta(hours=9)
+    JST = datetime.timezone(t_delta, 'JST')
+    now = datetime.datetime.now(JST)
+    date = now.strftime('%Y/%m/%d')
+    return date
 
+
+late_notification_items_tools = [late_notification_items, get_todays_date]
 
 
 class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入力スキーマ
@@ -247,7 +263,7 @@ class LateNotificationAgentInput(BaseModel): # 遅延届に関するAgentの入�
 
 class LateNotificationAgent(BaseToolAgent):
     def __init__(self, llm, memory, chat_history, verbose):
-        super().__init__(llm, memory, chat_history, verbose, model_kwargs=late_notification_model_kwargs)
+        super().__init__(llm, memory, chat_history, verbose)
     
     def run(self, input):
         # LateNotificationAgent特有の処理

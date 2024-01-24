@@ -8,9 +8,9 @@ from langchain_community.vectorstores.azuresearch import AzureSearch
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
 
-from .school_db import select_data
-from .models import Document, JapaneseCharacterTextSplitter
-from ..template import default_value
+from tech_db.school_db import select_data
+from tech_db.models import Document, JapaneseCharacterTextSplitter
+from tech_agents.template import default_value
 
 
 

@@ -7,6 +7,7 @@ import datetime
 from pydantic.v1 import BaseModel, Field
 
 from tech_agents.template.agent_model import BaseToolAgent
+from tech_agents.tools.procedure.late_notification import get_todays_date
 
 
 
@@ -24,6 +25,10 @@ from tech_agents.template.agent_model import BaseToolAgent
 
 
 # # あなたの取るべき行動
+# - あなたが行うことは、 application_items 関数を実行して遅延届を申請することです。
+# - ユーザーに返答する際は必ず application_items 関数を実行してください。
+# - もし具体的な日付が与えられなかった場合は、 get_todays_date 関数を実行して今日の日付を取得してください。
+# - 昨日などの相対的な表現で与えられた場合は、 get_todays_date 関数を実行して取得した日付から見た相対的な日付を設定してください。
 # - 必要な情報に未知の項目がある場合は予測や仮定をせず、"***" に置き換えた上で、ユーザーから与えられた情報を application_items 関数に設定し confirmed = false で実行して下さい。
 # - あなたの「最終確認です。以下の内容で公欠届を申請しますが、よろしいですか?」の問いかけに対して、ユーザーから肯定的な返答が確認できた場合のみ application_items 関数を confirmed = true で実行し申請を行って下さい。
 # - ユーザーから手続きをやめる、キャンセルする意思を伝えられた場合のみ、 application_items 関数を canceled = true で実行し、あなたはそれまでの公欠届の申請に関する内容を全て忘れます。
@@ -62,12 +67,16 @@ All of the following information is required in order to accept a request for a 
 
 
 # Required Information Items
-- Date of absence :.
-- Name of the class you will be absent from and the name of the instructor :.
-- Reason for absence :.
+- Date of absence
+- Name of the class you will be absent from and the name of the instructor
+- Reason for absence
 
 
 # Action to be taken by you
+- All you do is execute the application_items function to file a late report.
+- Be sure to execute the application_items function when replying to the user.
+- If a specific date is not given, execute the get_todays_date function to get today's date.
+- If a relative expression such as yesterday is given, then execute the get_todays_date function to set the date relative to the date obtained.
 - If there are unknown items of required information, do not make any predictions or assumptions, replace them with "***", set the information given by the user to the application_items function, and execute with confirmed = false.
 - Your "Final confirmation. I would like to apply for a public absence form with the following information, is this correct? If the user responds affirmatively to your "Final confirmation, I would like to apply for a public absence with the following information.
 - Only if the user informs you of his/her intention to cancel the procedure, you should execute the application_items function with canceled = true, and you will forget everything related to the application for the public absence report.
@@ -113,9 +122,10 @@ class ApplicationItemsInput(BaseModel):
         "\n"
         "[{'period_num': '1', 'class_name': 'python機械学習', 'instructor': '木本先生'}, {'period_num': '2', 'class_name': 'python機械学習', 'instructor': '木本先生'}]"
         "\n"
-        "としてください。")
+        "and should be.")
     )
-    reason: str = Field(description="Reasons for public absences.")
+    reason: str = Field(
+        description="Reasons for public absences. For example, 'for job hunting'.")
     confirmed: bool = Field(description=(
         "The status of the final confirmation of the order. Set True if the order is in final confirmation, False otherwise.\n"
         "* If confirmed is True, the part is ordered. \n"
@@ -234,8 +244,9 @@ def application_items(
             return request_information_template
 
 
-application_items_tools = [application_items]
-official_absence_model_kwargs = {"top_p": 0.1, "function_call": {'name': 'application_items'}}
+application_items_tools = [application_items, get_todays_date]
+# official_absence_model_kwargs = {"top_p": 0.1, "function_call": {'name': 'application_items'}}
+
 
 
 class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入力スキーマ
@@ -245,7 +256,7 @@ class OfficialAbsenceAgentInput(BaseModel): # 公欠届に関するAgentの入�
 
 class OfficialAbsenceAgent(BaseToolAgent):
     def __init__(self, llm, memory, chat_history, verbose):
-        super().__init__(llm, memory, chat_history, verbose, model_kwargs=official_absence_model_kwargs)
+        super().__init__(llm, memory, chat_history, verbose)
         # OfficialAbsenceAgent 特有の初期化（もしあれば）
 
     def run(self, input):

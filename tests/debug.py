@@ -1,4 +1,6 @@
 import os, sys
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 from langchain.memory import ConversationBufferMemory
 

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from typing import List
 import pyodbc
 
-from .models import Document
+from tech_db.models import Document
 
 
 load_dotenv(override=True)

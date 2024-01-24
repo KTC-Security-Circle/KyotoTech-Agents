@@ -1,8 +1,4 @@
-import os
-from dotenv import load_dotenv
-load_dotenv(override=True)
-from typing import Any, List
-
+from typing import List
 from langchain_community.vectorstores.azuresearch import AzureSearch
 
 from tech_agents.template.models import Document
