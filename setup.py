@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import sys
 sys.path.append('./src')
+sys.path.append('./src/tech_agents')
 # sys.path.append('./test')
 
 def _from_file(file_name):
