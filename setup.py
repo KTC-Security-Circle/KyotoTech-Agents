@@ -12,7 +12,7 @@ setup(
     name='tech_agents',
     version='0.0.2',
     author='Yuki Kimoto',
-    packages=find_packages("src"),
+    packages=find_packages("src/tech_agents"),
     package_dir={"": "src"},
     install_requires=_from_file('requirements.txt'),
     license='LICENSE.txt',
