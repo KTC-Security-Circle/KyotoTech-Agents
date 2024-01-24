@@ -6,7 +6,7 @@ from langchain.agents import AgentType, tool
 from langchain_community.retrievers import AzureCognitiveSearchRetriever
 from pydantic.v1 import BaseModel, Field
 
-from ...template.agent_model import BaseToolAgent
+from tech_agents.template.agent_model import BaseToolAgent
 
 
 # システムプロンプトの設定

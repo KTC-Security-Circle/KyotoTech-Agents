@@ -4,7 +4,7 @@ import requests
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-from ..template.agent_model import BaseToolAgent
+from tech_agents.template.agent_model import BaseToolAgent
 
 # システムプロンプトの設定
 # HOROSCOPE_SYSTEM_PROMPT = '''あなたは星占いの専門家です。

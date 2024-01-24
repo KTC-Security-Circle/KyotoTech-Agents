@@ -2,8 +2,8 @@ from pydantic.v1 import BaseModel, Field
 
 from langchain.agents import AgentType, tool
 
-from ...template.agent_model import BaseToolAgent
-from ...db.vector import search_vector
+from tech_agents.template.agent_model import BaseToolAgent
+from tech_agents.template.vector_search import search_vector
 
 # システムプロンプトの設定
 # SEARCHDB_SYSTEM_PROMPT = '''あなたはデータベース検索AIです。

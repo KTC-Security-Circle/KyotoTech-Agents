@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 import sys
 sys.path.append('./src')
-sys.path.append('./src/tech_agents')
 # sys.path.append('./test')
 
 def _from_file(file_name):
@@ -10,9 +9,9 @@ def _from_file(file_name):
 
 setup(
     name='tech_agents',
-    version='0.0.2',
+    version='0.0.6',
     author='Yuki Kimoto',
-    packages=find_packages("src/tech_agents"),
+    packages=find_packages("src"),
     package_dir={"": "src"},
     install_requires=_from_file('requirements.txt'),
     license='LICENSE.txt',

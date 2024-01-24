@@ -4,8 +4,8 @@ import requests
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-from ...db.vector import search_vector
-from ...template.agent_model import BaseToolAgent
+from tech_agents.template.vector_search import search_vector
+from tech_agents.template.agent_model import BaseToolAgent
 
 
 
