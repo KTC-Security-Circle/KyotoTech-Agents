@@ -1,7 +1,4 @@
 from langchain.agents import AgentType, tool
-import json
-import requests
-import datetime
 from pydantic.v1 import BaseModel, Field
 
 from tech_agents.template.vector_search import search_vector

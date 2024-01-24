@@ -1,5 +1,4 @@
 from pydantic.v1 import BaseModel, Field
-
 from langchain.agents import AgentType, tool
 
 from tech_agents.template.agent_model import BaseToolAgent

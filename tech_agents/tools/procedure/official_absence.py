@@ -6,7 +6,7 @@ import json
 import datetime
 from pydantic.v1 import BaseModel, Field
 
-from ...template.agent_model import BaseToolAgent
+from tech_agents.template.agent_model import BaseToolAgent
 
 
 

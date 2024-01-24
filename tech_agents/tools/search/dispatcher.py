@@ -1,10 +1,8 @@
-
-
 from langchain.agents import Tool
 from pydantic.v1 import BaseModel, Field
 
-from ...template.agent_model import BaseDispatcherAgent
-from ...tools import search
+from tech_agents.template.agent_model import BaseDispatcherAgent
+from tech_agents.tools import search
 
 
 class SearchAgentInput(BaseModel):
