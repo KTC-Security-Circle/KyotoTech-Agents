@@ -9,6 +9,8 @@ setup(
     author='',
     description='tech_agents : agents use toolagent',
     packages=find_packages(),
+    
     install_requires=_from_file('requirements.txt'),
     license='MIT',
+    include_package_data=True,
 )
