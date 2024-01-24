@@ -1,5 +1,8 @@
+import os, sys
+
 from langchain.memory import ConversationBufferMemory
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import agents
 
 
