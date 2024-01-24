@@ -32,6 +32,7 @@ Please embody the role provided next and engage in a conversation with the user.
 '''
 
 
+translate_tools = [translate]
 
 class DefaultAgentInput(BaseModel): # デフォルトエージェントの入力の定義
     user_utterance: str = Field(
@@ -47,7 +48,7 @@ class TranslateAgent(BaseToolAgent):
         # TranselateAgent特有の処理
         translate_agent = self.initialize_agent(
             agent_type=AgentType.OPENAI_FUNCTIONS,
-            tools=horoscope_tools,  # 事前に定義されたtranselate関数
+            tools=translate_tools,  # 事前に定義されたtranselate関数
             system_message_template=DEFAULT_SYSTEM_PROMPT
         )
         return translate_agent.run(input)
