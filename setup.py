@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
-
+import sys
+sys.path.append('./src')
+# sys.path.append('./test')
 
 def requirements_from_file(file_name):
     return open(file_name).read().splitlines()

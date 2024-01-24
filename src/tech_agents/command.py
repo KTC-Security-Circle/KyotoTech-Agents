@@ -1,6 +1,6 @@
 import os
 
-from . import tools
+from tech_agents import tools
 
 class CheckCommandParam:
 

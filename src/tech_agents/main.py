@@ -3,9 +3,9 @@ from langchain_openai import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.prompts.chat import MessagesPlaceholder
 
-from .command import Command, check_command
-from .dispatcher import MainDispatcherAgent
-from .template import default_value
+from tech_agents.command import Command, check_command
+from tech_agents.dispatcher import MainDispatcherAgent
+from tech_agents.template import default_value
 
 
 

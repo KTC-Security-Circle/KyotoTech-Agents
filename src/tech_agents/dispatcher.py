@@ -1,7 +1,7 @@
 from langchain.agents import Tool
 
-from .template.agent_model import BaseDispatcherAgent
-from . import tools
+from tech_agents.template.agent_model import BaseDispatcherAgent
+from tech_agents import tools
 
 
 class MainDispatcherAgent(BaseDispatcherAgent):
