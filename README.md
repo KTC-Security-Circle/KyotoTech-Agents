@@ -20,12 +20,16 @@
 
 ## 💻 インストール
 
-pip を使用して、このパッケージで使用されているすべてのライブラリをインストールします。
+pip を使用して、このパッケージをインストールします。
 
 ```bash
 
-pip install -r requirements.txt
+pip install git+https://github.com/KTC-Security-Circle/KyotoTech-Agents.git
 ```
+
+このパッケージはpipでは公開しておらず、Githubから直接インストールします。
+
+このパッケージに必要なその他パッケージのバージョンに関してはrequirements.txtを参照してください。
 
 ## 🌍 環境変数
 
