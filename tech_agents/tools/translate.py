@@ -1,12 +1,15 @@
-import langchain
-from langchain.agents import AgentType, initialize_agent, tool
-from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
-from langchain.tools import tool
-from langchain.schema import HumanMessage
-from langchain_openai import AzureChatOpenAI
-from langchain.memory import ConversationBufferMemory
+from operator import itemgetter
+
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain.agents import AgentType, tool
+from langchain.prompts import PromptTemplate
+from langchain.prompts.chat import MessagesPlaceholder, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
+import json
+import requests
+import datetime
 from pydantic.v1 import BaseModel, Field
 
+from tech_agents.template.agent_model import BaseToolAgent
 
 # プロンプトの設定
 # DEFAULT_SYSTEM_PROMPT = '''あなたは会話型アシスタントエージェントです。
@@ -18,7 +21,6 @@ from pydantic.v1 import BaseModel, Field
 # - 与えられた文章を、日本語から英語、英語から日本語、または必要に応じて他の言語にも翻訳してください。
 # - 文中の略語や頭字語はそのままの形で残すようお願いします。
 # - 不明点や翻訳中に判断が難しい部分があれば、可能な限り詳しく質問してください。
-# - 返答の際は、翻訳した後の文をそのまま返答してください。
 # '''
 DEFAULT_SYSTEM_PROMPT = '''You are a conversational assistant agent.
 Please embody the role provided next and engage in a conversation with the user.
@@ -29,14 +31,19 @@ Please embody the role provided next and engage in a conversation with the user.
 - Translate the given sentences from Japanese to English, English to Japanese, or other languages as needed.
 - Please leave all abbreviations and acronyms in the text as they are.
 - If there are any unclear points or parts that are difficult to judge during translation, please ask in as much detail as possible.
-- When replying, please reply with the sentence as it is after translation.
-
 '''
 
+translate_prompt = ChatPromptTemplate.from_messages(
+    [
+        SystemMessagePromptTemplate.from_template(template=DEFAULT_SYSTEM_PROMPT),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("human", "{input}")
+    ]
+)
 
-class DefaultInput: # デフォルトエージェントの入力の定義
+class TranslateAgentInput(BaseModel):
     user_utterance: str = Field(
-        description="This is the user's most recent utterance that communicates general content to the person in charge.")
+        description="This is the user's most recent utterance that is communicated to the translator.")
 
 
 class TranslateAgent:
@@ -46,19 +53,10 @@ class TranslateAgent:
         self.chat_history = chat_history
         self.verbose = verbose
 
-    def translate(self, input_text):
-        # TranselateAgent特有の処理
-        translate_agent = self.initialize_agent(
-            agent_type=AgentType.OPENAI_FUNCTIONS,
-            system_message_template=DEFAULT_SYSTEM_PROMPT
-        )
-        return "Translated text: " + input_text
+    def run(self, input):
+        history = self.memory.load_memory_variables({})['chat_history']
+        transrate_chain = translate_prompt | self.llm
+        inputs = {"chat_history": history, "input": input}
+        result = transrate_chain.invoke(inputs)
+        return result.content
 
-agent = TranslateAgent()
-
-text_to_translate = input("Translate text: ")
-
-translated_text = agent.translate(text_to_translate)
-print(translated_text)
-
-# debag

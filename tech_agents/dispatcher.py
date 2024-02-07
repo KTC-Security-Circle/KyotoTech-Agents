@@ -17,6 +17,8 @@ class MainDispatcherAgent(BaseDispatcherAgent):
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         self.study_agent = tools.StudyAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
+        self.translate_agent = tools.TranslateAgent(
+            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         self.default_agent = tools.DefaultAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         
@@ -51,6 +53,14 @@ class MainDispatcherAgent(BaseDispatcherAgent):
                 # description="この担当者は授業の勉強をお手伝いする担当者。授業の勉強についての会話の対応はこの担当者に任せる。",
                 description="This person is in charge of helping you study for your classes. This person is in charge of handling conversations about studying for your classes.",
                 args_schema=tools.StudyAgentInput,
+                return_direct=True
+            ),
+            Tool.from_function(
+                func=self.translate_agent.run,
+                name="translate",
+                # description="この担当者は翻訳をする担当者。翻訳が必要な時はこの担当者に任せる。",
+                description="This person is in charge of translating. When you need a translation, leave it to this person.",
+                args_schema=tools.TranslateAgentInput,
                 return_direct=True
             ),
             Tool.from_function(
