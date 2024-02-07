@@ -4,7 +4,6 @@ from pydantic.v1 import BaseModel, Field
 from tech_agents.template.agent_model import BaseDispatcherAgent
 from tech_agents.tools import search
 
-
 class SearchAgentInput(BaseModel):
     user_utterance: str = Field(
         description="This is the user's most recent utterance that is communicated to the person in charge of various procedures.")
@@ -20,17 +19,21 @@ def default_answer(input):
     return message
 
 
+
+
+
 class SearchAgent(BaseDispatcherAgent):
     def __init__(self, llm, memory, readonly_memory, chat_history, verbose):
         super().__init__(llm, memory, readonly_memory, chat_history, verbose)
 
     def define_tools(self):
-        self.default_answer = default_answer
         self.school_agent = search.SchoolAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         self.class_agent = search.ClassAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
         self.scholarship_agent = search.ScholarshipAgent(
+            llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
+        self.ddg_search = search.DDGSearchAgent(
             llm=self.llm, memory=self.readonly_memory, chat_history=self.chat_history, verbose=self.verbose)
 
         search_agent_tools = [
@@ -59,7 +62,13 @@ class SearchAgent(BaseDispatcherAgent):
                 return_direct=True
             ),
             Tool.from_function(
-                func=self.default_answer,
+                func=self.ddg_search.run,
+                name="DuckDuckGoSearchRun",
+                description="This person is in charge of conducting searches using search engines. If an Internet search is required, this person is in charge of the search.",
+                return_direct=True
+            ),
+            Tool.from_function(
+                func=default_answer,
                 name="DEFAULT",
                 # description="特定の検索に関する情報がない場合はこの担当者に任せるべきです。", # 日本語ver
                 description="If you do not have information on a particular application, this person should be assigned to you.",  # 英語ver
