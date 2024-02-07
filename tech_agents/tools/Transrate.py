@@ -2,11 +2,10 @@ import langchain
 from langchain.agents import AgentType, initialize_agent, tool
 from langchain.prompts.chat import SystemMessagePromptTemplate, MessagesPlaceholder
 from langchain.tools import tool
+from langchain.schema import HumanMessage
 from langchain_openai import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from pydantic.v1 import BaseModel, Field
-
-from tech_agents.template.agent_model import BaseToolAgent
 
 
 # プロンプトの設定
@@ -32,26 +31,31 @@ Please embody the role provided next and engage in a conversation with the user.
 '''
 
 
-translate_tools = [translate]
-
-class DefaultAgentInput(BaseModel): # デフォルトエージェントの入力の定義
+class DefaultInput: # デフォルトエージェントの入力の定義
     user_utterance: str = Field(
         description="This is the user's most recent utterance that communicates general content to the person in charge.")
 
 
-class TranslateAgent(BaseToolAgent):
-    def __init__(self, llm, memory, chat_history, verbose):
-        super().__init__(llm, memory, chat_history, verbose)
-        # TranselateAgent 特有の初期化（もしあれば）
+class TranslateAgent:
+    def __init__(self, llm=None, memory=None, chat_history=None, verbose=False):
+        self.llm = llm
+        self.memory = memory
+        self.chat_history = chat_history
+        self.verbose = verbose
 
-    def run(self, input):
+    def translate(self, input_text):
         # TranselateAgent特有の処理
         translate_agent = self.initialize_agent(
             agent_type=AgentType.OPENAI_FUNCTIONS,
-            tools=translate_tools,  # 事前に定義されたtranselate関数
             system_message_template=DEFAULT_SYSTEM_PROMPT
         )
-        return translate_agent.run(input)
+        return "Translated text: " + input_text
+
+agent = TranslateAgent()
+
+text_to_translate = input("Translate text: ")
+
+translated_text = agent.translate(text_to_translate)
+print(translated_text)
 
 # debag
-# print(Agent.run("Tell me about you"))
