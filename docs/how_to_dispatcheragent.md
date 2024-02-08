@@ -37,6 +37,7 @@
 class SearchAgent(BaseToolAgent):
     def run(self, input) -> str:
         # 検索クエリを処理するための実装
+```
 
 ステップ2: ツールをMainDispatcherAgentに統合する
 
@@ -49,6 +50,7 @@ def define_tools(self):
         Tool.from_function(func=self.search_agent.run, name="search", description="...", args_schema=...),
         # 他のツール
     ]
+```
 
 ステップ3: DispatcherAgentのインスタンス化と使用
 
@@ -58,6 +60,7 @@ def define_tools(self):
 
 dispatcher_agent = MainDispatcherAgent(llm, memory, readonly_memory, chat_history, verbose)
 response = dispatcher_agent.run(user_message)
+```
 
 ## 注意点
 
