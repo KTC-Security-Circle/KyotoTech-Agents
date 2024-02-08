@@ -32,35 +32,32 @@
 
 提供された機能ごとにBaseToolAgentのサブクラスを実装します。各ツールエージェントは、それが設計された入力を処理するためのロジックを実装する必要があります。
 
-```python
-
-class SearchAgent(BaseToolAgent):
-    def run(self, input) -> str:
-        # 検索クエリを処理するための実装
-```
+    ```python
+    class SearchAgent(BaseToolAgent):
+        def run(self, input) -> str:
+            # 検索クエリを処理するための実装
+    ```
 
 ステップ2: ツールをMainDispatcherAgentに統合する
 
 MainDispatcherAgentクラスで、define_toolsメソッドをオーバーライドし、ディスパッチャーエージェントが使用するツール（BaseToolAgentのサブクラスのインスタンス）のリストをインスタンス化して返します。
 
-```python
-
-def define_tools(self):
-    return [
-        Tool.from_function(func=self.search_agent.run, name="search", description="...", args_schema=...),
-        # 他のツール
-    ]
-```
+    ```python
+    def define_tools(self):
+        return [
+            Tool.from_function(func=self.search_agent.run, name="search", description="...", args_schema=...),
+            # 他のツール
+        ]
+    ```
 
 ステップ3: DispatcherAgentのインスタンス化と使用
 
 言語モデル、メモリ、ツールを含む必要なパラメータを提供してMainDispatcherAgentのインスタンスを作成します。ユーザー入力を処理するためにrunメソッドを使用します。
 
-```python
-
-dispatcher_agent = MainDispatcherAgent(llm, memory, readonly_memory, chat_history, verbose)
-response = dispatcher_agent.run(user_message)
-```
+    ```python
+    dispatcher_agent = MainDispatcherAgent(llm, memory, readonly_memory, chat_history, verbose)
+    response = dispatcher_agent.run(user_message)
+    ```
 
 ## 注意点
 
