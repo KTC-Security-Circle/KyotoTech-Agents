@@ -20,22 +20,22 @@ from tech_agents.template import default_value
 
 # プロンプトの定義
 # 日本語ver
-# ROUTER_TEMPLATE = '''あなたの仕事は、以下の候補からユーザーの対応を任せるのに最適な選択肢を選び、その名前を回答することです。直接ユーザーへの回答は行わず、適切な候補を選ぶだけです。
+# ROUTER_TEMPLATE = '''あなたの仕事は、以下の候補からユーザーの対応を任せるのに最適な選択肢を選び、その名前を回答することです。直接ユーザーへの回答は行わず、適切な候補を選ぶだけです。選ぶ際はHumanとAIの会話履歴を参考にして会話が成り立つようにしてください。
 
-# << 選択候補 >>
+# # 選択候補 
 # 名前: 説明
 # {destinations}
 
-# << 出力形式 >>
+# # 出力形式 
 # 選択した候補の名前のみを出力してください。全ての候補が不適切である場合は "DEFAULT" と回答してください。
 
-# << 回答例 >>
+# # 回答例 
 # Human: 「あなたに与えられた役割はなんですか？」
 # AI: "DEFAULT"
 # '''
 
 # 英語ver(トークン節約のため)
-ROUTER_TEMPLATE = '''Your job is to select the best option from the candidates below to entrust the user to respond to the user and answer to the name. You do not respond directly to the user, only select the appropriate candidate.
+ROUTER_TEMPLATE = '''Your job is to select the best option from the candidates below to entrust the user to respond to the user and answer to the name. You do not respond directly to the user, only select the appropriate candidate. When choosing, please refer to the conversation history between the Human and the AI to ensure that the conversation is a good one.
 
 # Candidate Selection
 Name: Description.
@@ -48,7 +48,7 @@ Output only the names of the selected candidates. If all candidates are inapprop
 Human: "What is your assigned role?"
 AI: "DEFAULT"
 
-# history
+# conversation history
 '''
 
 # 追いプロンプトの定義
