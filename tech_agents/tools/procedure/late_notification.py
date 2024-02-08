@@ -142,17 +142,17 @@ class LateNotificationItemsInput(BaseModel):
 
 @tool("late_notification_items", return_direct=True, args_schema=LateNotificationItemsInput)
 def late_notification_items(
-    date: str,
-    late_class: str,
-    in_class_time: str,
-    late_class_name: str,
-    late_class_instructor: str,
-    use_public_transportation: str,
-    use_transportation_name: str,
-    late_time: str,
-    check_late_time: bool,
-    confirmed: bool,
-    canceled: bool,
+    date: str = None,
+    late_class: str = None,
+    in_class_time: str = None,
+    late_class_name: str = None,
+    late_class_instructor: str = None,
+    use_public_transportation: str = None,
+    use_transportation_name: str = None,
+    late_time: str = None,
+    check_late_time: bool = False,
+    confirmed: bool = False,
+    canceled: bool = False,
 ) -> str:
     """遅延届の申請を行う関数です。"""
     if canceled:

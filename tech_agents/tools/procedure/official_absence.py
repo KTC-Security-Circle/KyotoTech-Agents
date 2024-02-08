@@ -141,11 +141,11 @@ class ApplicationItemsInput(BaseModel):
 
 @tool("application_items", return_direct=True, args_schema=ApplicationItemsInput)
 def application_items(
-    date: str,
-    application_class: list[dict[str, str]] | None,
-    reason: str,
-    confirmed: bool,
-    canceled: bool,
+    date: str = None,
+    application_class: list[dict[str, str]] = None,
+    reason: str = None,
+    confirmed: bool = False,
+    canceled: bool = False,
 ) -> str:
     """公欠届の申請を行う関数です。"""
     if canceled:
