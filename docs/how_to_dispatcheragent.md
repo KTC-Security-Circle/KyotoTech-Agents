@@ -8,23 +8,18 @@
 
 ディスパッチャーエージェントの主な目的は以下の通りです：
 
-    ユーザーの入力を明確なカテゴリまたは宛先に効率的に分類します。
-    分類された入力を、それらの特定タイプのクエリを扱うために特別に設計された専門のツールに委譲します。
-    さまざまなツールをシームレスに統合する統合ポイントを提供し、ユーザーのクエリを処理するためのモジュラーでスケーラブルなアプローチを可能にします。
+ユーザーの入力を明確なカテゴリまたは宛先に効率的に分類します。
+分類された入力を、それらの特定タイプのクエリを扱うために特別に設計された専門のツールに委譲します。
+さまざまなツールをシームレスに統合する統合ポイントを提供し、ユーザーのクエリを処理するためのモジュラーでスケーラブルなアプローチを可能にします。
 
 ## 主要コンポーネント
 
-    DispatcherAgent: ユーザーの入力を受け取り、入力を処理する適切なツールを決定し、入力をそのツールにルーティングするコアクラス。
-
-    BaseToolAgent: すべてのツールの基底クラス。各特定のツールは、このクラスから継承し、それが受け取る入力を処理するためのロジックを実装する必要があります。
-
-    MainDispatcherAgent: BaseDispatcherAgentのサブクラスで、特定のツールが定義され、ディスパッチャーエージェントシステムに統合されます。
-
-    Tools: 入力に基づいて特定のアクションを実行する事前定義されたハンドラー。例えば、検索、手続き処理、占星術、勉強の手助け、翻訳、一般的なクエリのためのデフォルトハンドラーなどがあります。
-
-    DestinationOutputParser: ディスパッチャーエージェントの出力を解析し、選択された宛先/ツールを特定するクラス。
-
-    プロンプトテンプレート: 言語モデルとのやり取りを構築するために定義され、ユーザー入力に基づいて適切なツールを選択するように案内します。
+- DispatcherAgent: ユーザーの入力を受け取り、入力を処理する適切なツールを決定し、入力をそのツールにルーティングするコアクラス。
+- BaseToolAgent: すべてのツールの基底クラス。各特定のツールは、このクラスから継承し、それが受け取る入力を処理するためのロジックを実装する必要があります。
+- MainDispatcherAgent: BaseDispatcherAgentのサブクラスで、特定のツールが定義され、ディスパッチャーエージェントシステムに統合されます。
+- Tools: 入力に基づいて特定のアクションを実行する事前定義されたハンドラー。例えば、検索、手続き処理、占星術、勉強の手助け、翻訳、一般的なクエリのためのデフォルトハンドラーなどがあります。
+- DestinationOutputParser: ディスパッチャーエージェントの出力を解析し、選択された宛先/ツールを特定するクラス。
+- プロンプトテンプレート: 言語モデルとのやり取りを構築するために定義され、ユーザー入力に基づいて適切なツールを選択するように案内します。
 
 ## 実装手順
 
@@ -32,32 +27,32 @@
 
 提供された機能ごとにBaseToolAgentのサブクラスを実装します。各ツールエージェントは、それが設計された入力を処理するためのロジックを実装する必要があります。
 
-    ```python
-    class SearchAgent(BaseToolAgent):
-        def run(self, input) -> str:
-            # 検索クエリを処理するための実装
-    ```
+```python
+class SearchAgent(BaseToolAgent):
+    def run(self, input) -> str:
+        # 検索クエリを処理するための実装
+```
 
 ステップ2: ツールをMainDispatcherAgentに統合する
 
 MainDispatcherAgentクラスで、define_toolsメソッドをオーバーライドし、ディスパッチャーエージェントが使用するツール（BaseToolAgentのサブクラスのインスタンス）のリストをインスタンス化して返します。
 
-    ```python
-    def define_tools(self):
-        return [
-            Tool.from_function(func=self.search_agent.run, name="search", description="...", args_schema=...),
-            # 他のツール
-        ]
-    ```
+```python
+def define_tools(self):
+    return [
+        Tool.from_function(func=self.search_agent.run, name="search", description="...", args_schema=...),
+        # 他のツール
+    ]
+```
 
 ステップ3: DispatcherAgentのインスタンス化と使用
 
 言語モデル、メモリ、ツールを含む必要なパラメータを提供してMainDispatcherAgentのインスタンスを作成します。ユーザー入力を処理するためにrunメソッドを使用します。
 
-    ```python
-    dispatcher_agent = MainDispatcherAgent(llm, memory, readonly_memory, chat_history, verbose)
-    response = dispatcher_agent.run(user_message)
-    ```
+```python
+dispatcher_agent = MainDispatcherAgent(llm, memory, readonly_memory, chat_history, verbose)
+response = dispatcher_agent.run(user_message)
+```
 
 ## 注意点
 
