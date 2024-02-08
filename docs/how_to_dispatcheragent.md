@@ -32,7 +32,7 @@
 
 提供された機能ごとにBaseToolAgentのサブクラスを実装します。各ツールエージェントは、それが設計された入力を処理するためのロジックを実装する必要があります。
 
-python
+```python
 
 class SearchAgent(BaseToolAgent):
     def run(self, input) -> str:
@@ -42,7 +42,7 @@ class SearchAgent(BaseToolAgent):
 
 MainDispatcherAgentクラスで、define_toolsメソッドをオーバーライドし、ディスパッチャーエージェントが使用するツール（BaseToolAgentのサブクラスのインスタンス）のリストをインスタンス化して返します。
 
-python
+```python
 
 def define_tools(self):
     return [
@@ -54,7 +54,7 @@ def define_tools(self):
 
 言語モデル、メモリ、ツールを含む必要なパラメータを提供してMainDispatcherAgentのインスタンスを作成します。ユーザー入力を処理するためにrunメソッドを使用します。
 
-python
+```python
 
 dispatcher_agent = MainDispatcherAgent(llm, memory, readonly_memory, chat_history, verbose)
 response = dispatcher_agent.run(user_message)
