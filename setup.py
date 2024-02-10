@@ -5,7 +5,7 @@ def _from_file(file_name):
 
 setup(
     name='tech_agents',
-    version='0.1.5',
+    version='0.1.6',
     author='',
     description='tech_agents : agents use toolagent',
     packages=find_packages(),
