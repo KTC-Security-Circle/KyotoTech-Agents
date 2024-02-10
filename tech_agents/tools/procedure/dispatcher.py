@@ -36,7 +36,7 @@ class ProcedureAgent(BaseDispatcherAgent):
                 func=self.late_notification_agent.run,
                 name="late_notification",
                 # description="この担当者は遅延届申請を受け付けている担当者。ユーザーが遅延届を届け出たい場合はこの担当者に任せる。",
-                description="This person is the person in charge of accepting late report applications. If a user wants to report a delay, this person is in charge.",
+                description="This person is responsible for accepting late report requests. If a user wants to report a delay, this is the person to contact.",
                 args_schema=procedure.LateNotificationAgentInput,
                 return_direct=True
             ),
@@ -44,7 +44,7 @@ class ProcedureAgent(BaseDispatcherAgent):
                 func=self.official_absence_agent.run,
                 name="official_absence",
                 # description="この担当者は公欠届申請を受け付けている担当者。ユーザーが公欠届を届け出たい場合はこの担当者に任せる。"
-                description="This person is the person in charge of accepting public absence notification applications. If the user wants to report a public absence, this person is in charge.",
+                description="This person is responsible for accepting public absence requests. If the user wants to report a public absence, this person will be in charge.",
                 args_schema=procedure.OfficialAbsenceAgentInput,
                 return_direct=True
             ),
