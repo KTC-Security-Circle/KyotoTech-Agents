@@ -1,4 +1,4 @@
-# DisPatcher Agent の概要・作成手順
+# Dispatcher Agent の概要・作成手順
 
 ## 概要
 
