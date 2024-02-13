@@ -23,19 +23,25 @@
 
 ## 実装手順
 
-ステップ1: ツールエージェントの定義
+ステップ1: ツールの定義
 
 提供された機能ごとにBaseToolAgentのサブクラスを実装します。各ツールエージェントは、それが設計された入力を処理するためのロジックを実装する必要があります。
 
 ```python
+# ツールエージェントの例
 class SearchAgent(BaseToolAgent):
     def run(self, input) -> str:
         # 検索クエリを処理するための実装
+
+# 自作ツールの例
+@tool("mytool", return_direct=True)
+def mytool(input: str):
+    """自作のツールを定義する"""
 ```
 
-ステップ2: ツールをMainDispatcherAgentに統合する
+ステップ2: ツールをDispatcherAgentに統合する
 
-MainDispatcherAgentクラスで、define_toolsメソッドをオーバーライドし、ディスパッチャーエージェントが使用するツール（BaseToolAgentのサブクラスのインスタンス）のリストをインスタンス化して返します。
+DispatcherAgentクラスで、define_toolsメソッドをオーバーライドし、ディスパッチャーエージェントが使用するツール（BaseToolAgentのサブクラスのインスタンス）のリストをインスタンス化して返します。
 
 ```python
 def define_tools(self):
